@@ -1,0 +1,16 @@
+package pl.com.bottega.ecommerce.sales.domain.invoicing;
+
+import static org.junit.Assert.*;
+
+import org.junit.Test;
+
+public class BookKeeperTest {
+
+	@Test
+	public void requestOneInvoiceWithOnePosition() {
+		 
+		//assertThat(actual, matcher);
+	}
+
+}
+//izolacja od taxpolicy
