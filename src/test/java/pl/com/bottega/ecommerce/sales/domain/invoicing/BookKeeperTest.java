@@ -19,20 +19,19 @@ public class BookKeeperTest {
 
     @Test
     public void stateTest_shouldReturnInvoiceWithOneEntry() {
-        ProductData productData = Mockito.mock(ProductData.class);
-        ProductType productType = ProductType.STANDARD;
-        when(productData.getType()).thenAnswer(invocationOnMock -> productType);
-        Money money = new Money(0.0);
-        RequestItem requestItem = new RequestItem(productData, 0, money);
-        ClientData clientData = new ClientData(new Id("001"), "prod001");
-        InvoiceRequest invoiceRequest = new InvoiceRequest(clientData);
-        invoiceRequest.add(requestItem);
-        BookKeeper bookKeeper = new BookKeeper(new InvoiceFactory());
-        TaxPolicy taxPolicy = Mockito.mock(TaxPolicy.class);
-        Tax tax = new Tax(money, "tax_desc");
-        when(taxPolicy.calculateTax(productType, money)).thenAnswer(invocationOnMock -> tax);
-
-        Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
+        InvoiceWithOneEntryTestDirector director = new InvoiceWithOneEntryTestDirector();
+        ProductData productData2 = Mockito.mock(ProductData.class);
+        ProductType productType2 = ProductType.STANDARD;
+        when(productData2.getType()).thenAnswer(invocationOnMock -> productType2);
+        director.setProductData(productData2);
+        InvoiceRequest invoiceRequest2 = director.constructAndGet();
+        TaxPolicy taxPolicy2 = Mockito.mock(TaxPolicy.class);
+        Money money2 = director.getRequestItemBuilder().getMoney();
+        Tax tax2 = new Tax(money2, "tax_test");
+        when(taxPolicy2.calculateTax(productType2, money2)).thenAnswer(invocationOnMock -> tax2);
+        BookKeeper bookKeeper2 = new BookKeeper(new InvoiceFactory());
+        
+        Invoice invoice = bookKeeper2.issuance(invoiceRequest2, taxPolicy2);
         List<InvoiceLine> items = invoice.getItems();
 
         assertThat(invoice, notNullValue());
