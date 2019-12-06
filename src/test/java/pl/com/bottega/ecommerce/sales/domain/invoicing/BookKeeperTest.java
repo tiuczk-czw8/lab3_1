@@ -1,6 +1,8 @@
 package pl.com.bottega.ecommerce.sales.domain.invoicing;
 
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
+import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 import pl.com.bottega.ecommerce.canonicalmodel.publishedlanguage.ClientData;
@@ -17,21 +19,40 @@ import static org.mockito.Mockito.when;
 
 public class BookKeeperTest {
 
+    private InvoiceWithOneEntryTestDirector director1;
+    private ProductType productType1;
+    private BookKeeper bookKeeper;
+
+    ProductData getProductDataMock(ProductType productType) {
+        ProductData productData = Mockito.mock(ProductData.class);
+        when(productData.getType()).thenAnswer(invocationOnMock -> productType);
+        return productData;
+    }
+
+    TaxPolicy getTaxPolicyMock(@NotNull InvoiceTestDirectorImpl director, ProductType productType) {
+        TaxPolicy taxPolicy2 = Mockito.mock(TaxPolicy.class);
+        RequestItemTestBuilderImpl builder = director.getRequestItemBuilder();
+        Money money2 = builder.getMoney();
+        Tax tax2 = new Tax(money2, "tax_test");
+        when(taxPolicy2.calculateTax(productType, money2)).thenAnswer(invocationOnMock -> tax2);
+        return taxPolicy2;
+    }
+
+    @Before
+    public void setUp() {
+        director1 = new InvoiceWithOneEntryTestDirector();
+        productType1 = ProductType.STANDARD;
+        ProductData productData = getProductDataMock(productType1);
+        director1.setProductData(productData);
+        bookKeeper = new BookKeeper(new InvoiceFactory());
+    }
+
     @Test
     public void stateTest_shouldReturnInvoiceWithOneEntry() {
-        InvoiceWithOneEntryTestDirector director = new InvoiceWithOneEntryTestDirector();
-        ProductData productData2 = Mockito.mock(ProductData.class);
-        ProductType productType2 = ProductType.STANDARD;
-        when(productData2.getType()).thenAnswer(invocationOnMock -> productType2);
-        director.setProductData(productData2);
-        InvoiceRequest invoiceRequest2 = director.constructAndGet();
-        TaxPolicy taxPolicy2 = Mockito.mock(TaxPolicy.class);
-        Money money2 = director.getRequestItemBuilder().getMoney();
-        Tax tax2 = new Tax(money2, "tax_test");
-        when(taxPolicy2.calculateTax(productType2, money2)).thenAnswer(invocationOnMock -> tax2);
-        BookKeeper bookKeeper2 = new BookKeeper(new InvoiceFactory());
-        
-        Invoice invoice = bookKeeper2.issuance(invoiceRequest2, taxPolicy2);
+        InvoiceRequest invoiceRequest = director1.constructAndGet();
+        TaxPolicy taxPolicy = getTaxPolicyMock(director1, productType1);
+
+        Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
         List<InvoiceLine> items = invoice.getItems();
 
         assertThat(invoice, notNullValue());
