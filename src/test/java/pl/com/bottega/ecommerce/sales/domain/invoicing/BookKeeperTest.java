@@ -12,6 +12,7 @@ import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 public class BookKeeperTest {
@@ -136,7 +137,53 @@ public class BookKeeperTest {
         assertThat(invoice, notNullValue());
         verify(taxPolicy, times(1)).calculateTax(productType1, money);
         verify(taxPolicy, times(1)).calculateTax(productType2, money);
-        verify(taxPolicy, times(2));
+        verifyNoMoreInteractions(taxPolicy);
+    }
+
+    @Test
+    public void behaviourTest_invoiceWithOneEntryShouldCalculateTaxOnce() {
+        ProductData productData1 = Mockito.mock(ProductData.class);
+        ProductType productType1 = ProductType.STANDARD;
+        when(productData1.getType()).thenAnswer(invocationOnMock -> productType1);
+        Money money = new Money(0.0);
+        int quantity1 = 0;
+        RequestItem requestItem1 = new RequestItem(productData1, quantity1, money);
+        ClientData clientData1 = new ClientData(new Id("001"), "prod001");
+        InvoiceRequest invoiceRequest = new InvoiceRequest(clientData1);
+        invoiceRequest.add(requestItem1);
+        BookKeeper bookKeeper = new BookKeeper(new InvoiceFactory());
+        TaxPolicy taxPolicy = Mockito.mock(TaxPolicy.class);
+        Tax tax1 = new Tax(money, "tax_desc_1");
+        when(taxPolicy.calculateTax(productType1, money)).thenAnswer(invocationOnMock -> tax1);
+
+        Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
+
+        assertThat(invoice, notNullValue());
+        verify(taxPolicy, times(1)).calculateTax(productType1, money);
+        verifyNoMoreInteractions(taxPolicy);
+    }
+
+    @Test
+    public void behaviourTest_invoiceWithOneEntryShouldCallGetterOnceForProductData() {
+        ProductData productData1 = Mockito.mock(ProductData.class);
+        ProductType productType1 = ProductType.STANDARD;
+        when(productData1.getType()).thenAnswer(invocationOnMock -> productType1);
+        Money money = new Money(0.0);
+        int quantity1 = 0;
+        RequestItem requestItem1 = new RequestItem(productData1, quantity1, money);
+        ClientData clientData1 = new ClientData(new Id("001"), "prod001");
+        InvoiceRequest invoiceRequest = new InvoiceRequest(clientData1);
+        invoiceRequest.add(requestItem1);
+        BookKeeper bookKeeper = new BookKeeper(new InvoiceFactory());
+        TaxPolicy taxPolicy = Mockito.mock(TaxPolicy.class);
+        Tax tax1 = new Tax(money, "tax_desc_1");
+        when(taxPolicy.calculateTax(productType1, money)).thenAnswer(invocationOnMock -> tax1);
+
+        Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
+
+        assertThat(invoice, notNullValue());
+        verify(productData1, times(1)).getType();
+        verifyNoMoreInteractions(productData1);
     }
 
 }
