@@ -162,19 +162,10 @@ public class BookKeeperTest {
 
     @Test
     public void behaviourTest_invoiceWithOneEntryShouldCalculateTaxOnce() {
-        ProductData productData1 = Mockito.mock(ProductData.class);
-        ProductType productType1 = ProductType.STANDARD;
-        when(productData1.getType()).thenAnswer(invocationOnMock -> productType1);
-        Money money = new Money(0.0);
-        int quantity1 = 0;
-        RequestItem requestItem1 = new RequestItem(productData1, quantity1, money);
-        ClientData clientData1 = new ClientData(new Id("001"), "prod001");
-        InvoiceRequest invoiceRequest = new InvoiceRequest(clientData1);
-        invoiceRequest.add(requestItem1);
-        BookKeeper bookKeeper = new BookKeeper(new InvoiceFactory());
-        TaxPolicy taxPolicy = Mockito.mock(TaxPolicy.class);
-        Tax tax1 = new Tax(money, "tax_desc_1");
-        when(taxPolicy.calculateTax(productType1, money)).thenAnswer(invocationOnMock -> tax1);
+        InvoiceRequest invoiceRequest = director1.constructAndGet();
+        TaxPolicy taxPolicy = getTaxPolicyMock(director1, productType1);
+        RequestItemTestBuilderImpl itemBuilder = director1.getRequestItemBuilder();
+        Money money = itemBuilder.getMoney();
 
         Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
 
@@ -185,19 +176,9 @@ public class BookKeeperTest {
 
     @Test
     public void behaviourTest_invoiceWithOneEntryShouldCallGetterOnceForProductData() {
-        ProductData productData1 = Mockito.mock(ProductData.class);
-        ProductType productType1 = ProductType.STANDARD;
-        when(productData1.getType()).thenAnswer(invocationOnMock -> productType1);
-        Money money = new Money(0.0);
-        int quantity1 = 0;
-        RequestItem requestItem1 = new RequestItem(productData1, quantity1, money);
-        ClientData clientData1 = new ClientData(new Id("001"), "prod001");
-        InvoiceRequest invoiceRequest = new InvoiceRequest(clientData1);
-        invoiceRequest.add(requestItem1);
-        BookKeeper bookKeeper = new BookKeeper(new InvoiceFactory());
-        TaxPolicy taxPolicy = Mockito.mock(TaxPolicy.class);
-        Tax tax1 = new Tax(money, "tax_desc_1");
-        when(taxPolicy.calculateTax(productType1, money)).thenAnswer(invocationOnMock -> tax1);
+        InvoiceRequest invoiceRequest = director1.constructAndGet();
+        TaxPolicy taxPolicy = getTaxPolicyMock(director1, productType1);
+        ProductData productData1 = director1.getProductData();
 
         Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
 
