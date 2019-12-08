@@ -78,11 +78,6 @@ public class BookKeeperTest {
         List<InvoiceLine> items = invoice.getItems();
 
         verify(taxPolicy,times(2)).calculateTax(productType,money);
-
-        assertThat(invoice, notNullValue());
-        assertThat(items, notNullValue());
-        assertThat(items.size(), is(2));
-
     }
 
     @Test
@@ -103,11 +98,6 @@ public class BookKeeperTest {
         List<InvoiceLine> items = invoice.getItems();
 
         verify(taxPolicy,times(0)).calculateTax(productType,money);
-
-        assertThat(invoice, notNullValue());
-        assertThat(items, notNullValue());
-        assertThat(items.size(), is(0));
-
     }
 
     @Test
@@ -132,10 +122,8 @@ public class BookKeeperTest {
         List<InvoiceLine> items = invoice.getItems();
 
         verify(taxPolicy,times(500)).calculateTax(productType,money);
-
-        assertThat(invoice, notNullValue());
-        assertThat(items, notNullValue());
-        assertThat(items.size(), is(500));
-
     }
+
+
+
 }
