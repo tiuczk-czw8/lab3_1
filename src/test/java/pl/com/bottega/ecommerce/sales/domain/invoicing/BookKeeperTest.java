@@ -109,4 +109,33 @@ public class BookKeeperTest {
         assertThat(items.size(), is(0));
 
     }
+
+    @Test
+    public void shouldCalculateTax500TimesForInvoiceWith500Entries()
+    {
+        when(productData.getType()).thenAnswer(invocationOnMock -> productType);
+
+        Money money = new Money(0.0);
+        RequestItem requestItem = new RequestItem(productData, 0, money);
+        ClientData clientData = new ClientData(new Id("1"), "product");
+
+        InvoiceRequest invoiceRequest = new InvoiceRequest(clientData);
+        for (int i = 0; i < 500; i++){
+            invoiceRequest.add(requestItem);
+        }
+        BookKeeper bookKeeper = new BookKeeper(new InvoiceFactory());
+
+        Tax tax = new Tax(money, "tax");
+        when(taxPolicy.calculateTax(productType, money)).thenAnswer(invocationOnMock -> tax);
+
+        Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
+        List<InvoiceLine> items = invoice.getItems();
+
+        verify(taxPolicy,times(500)).calculateTax(productType,money);
+
+        assertThat(invoice, notNullValue());
+        assertThat(items, notNullValue());
+        assertThat(items.size(), is(500));
+
+    }
 }
