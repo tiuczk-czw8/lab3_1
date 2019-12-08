@@ -6,6 +6,7 @@ import org.mockito.Mockito;
 import pl.com.bottega.ecommerce.canonicalmodel.publishedlanguage.ClientData;
 import pl.com.bottega.ecommerce.canonicalmodel.publishedlanguage.ClientDataBuilder;
 import pl.com.bottega.ecommerce.canonicalmodel.publishedlanguage.Id;
+import pl.com.bottega.ecommerce.sales.domain.invoicing.TestBuilders.InvoiceRequestNoParamaterTestBuilder;
 import pl.com.bottega.ecommerce.sales.domain.invoicing.TestBuilders.InvoiceRequestOneParameterTestBuilder;
 import pl.com.bottega.ecommerce.sales.domain.invoicing.TestBuilders.RequestItemTestBuilder;
 import pl.com.bottega.ecommerce.sales.domain.productscatalog.ProductData;
@@ -20,6 +21,7 @@ public class BookKeeperTest {
     private ProductData productData = Mockito.mock(ProductData.class);
     private ProductType productType = ProductType.STANDARD;
     private InvoiceRequestOneParameterTestBuilder oneParameterTestBuilder = new InvoiceRequestOneParameterTestBuilder();
+    private InvoiceRequestNoParamaterTestBuilder noParamaterTestBuilder = new InvoiceRequestNoParamaterTestBuilder();
 
     @Test
     public void shouldReturnInvoiceWithOneEntryForOneListElement() {
@@ -45,13 +47,15 @@ public class BookKeeperTest {
     @Test
     public void shouldReturnInvoiceWithZeroEntriesForZeroElements() {
         when(productData.getType()).thenAnswer(invocationOnMock -> productType);
-        Money money = new Money(0.0);
-        ClientData clientData = new ClientDataBuilder().setId(new Id("1")).setName("prod").createClientData();
-        InvoiceRequest invoiceRequest = new InvoiceRequest(clientData);
+
+        noParamaterTestBuilder.setProductData(productData);
+        RequestItemTestBuilder requestItemBuilder = oneParameterTestBuilder.getRequestItemBuilder();
+
+        InvoiceRequest invoiceRequest = noParamaterTestBuilder.constructAndGet();
         BookKeeper bookKeeper = new BookKeeper(new InvoiceFactory());
         TaxPolicy taxPolicy = Mockito.mock(TaxPolicy.class);
-        Tax tax = new Tax(money, "tax");
-        when(taxPolicy.calculateTax(productType, money)).thenAnswer(invocationOnMock -> tax);
+        Tax tax = new Tax(requestItemBuilder.getMoney(), "tax");
+        when(taxPolicy.calculateTax(productType, requestItemBuilder.getMoney())).thenAnswer(invocationOnMock -> tax);
 
         Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
         List<InvoiceLine> items = invoice.getItems();
