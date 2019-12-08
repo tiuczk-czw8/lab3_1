@@ -1,40 +1,41 @@
 package pl.com.bottega.ecommerce.sales.domain.invoicing;
 
 import java.util.List;
+
+import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
-import pl.com.bottega.ecommerce.canonicalmodel.publishedlanguage.ClientData;
-import pl.com.bottega.ecommerce.canonicalmodel.publishedlanguage.ClientDataBuilder;
-import pl.com.bottega.ecommerce.canonicalmodel.publishedlanguage.Id;
-import pl.com.bottega.ecommerce.sales.domain.invoicing.TestBuilders.InvoiceRequestNoParamaterTestBuilder;
-import pl.com.bottega.ecommerce.sales.domain.invoicing.TestBuilders.InvoiceRequestOneParameterTestBuilder;
-import pl.com.bottega.ecommerce.sales.domain.invoicing.TestBuilders.RequestItemTestBuilder;
+import pl.com.bottega.ecommerce.sales.domain.invoicing.TestBuilders.*;
 import pl.com.bottega.ecommerce.sales.domain.productscatalog.ProductData;
 import pl.com.bottega.ecommerce.sales.domain.productscatalog.ProductType;
-import pl.com.bottega.ecommerce.sharedkernel.Money;
+
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.*;
 
 public class BookKeeperTest {
 
-    private ProductData productData = Mockito.mock(ProductData.class);
-    private ProductType productType = ProductType.STANDARD;
-    private InvoiceRequestOneParameterTestBuilder oneParameterTestBuilder = new InvoiceRequestOneParameterTestBuilder();
-    private InvoiceRequestNoParamaterTestBuilder noParamaterTestBuilder = new InvoiceRequestNoParamaterTestBuilder();
+    private ProductData productData;
+    private ProductType productType;
+    private InvoiceRequesWithParametersTestBuilder invoiceRequesWithParametersTestBuilder;
+
+    @Before
+    public void setUp() {
+        productData = Mockito.mock(ProductData.class);
+        invoiceRequesWithParametersTestBuilder = new InvoiceRequesWithParametersTestBuilder();
+        productType = ProductType.STANDARD;
+        when(productData.getType()).thenAnswer(invocationOnMock -> productType);
+        invoiceRequesWithParametersTestBuilder.setProductData(productData);
+    }
 
     @Test
     public void shouldReturnInvoiceWithOneEntryForOneListElement() {
-        when(productData.getType()).thenAnswer(invocationOnMock -> productType);
-        oneParameterTestBuilder.setProductData(productData);
-        RequestItemTestBuilder requestItemBuilder = oneParameterTestBuilder.getRequestItemBuilder();
-
-        InvoiceRequest invoiceRequest = oneParameterTestBuilder.constructAndGet();
+        InvoiceRequest invoiceRequest = invoiceRequesWithParametersTestBuilder.constructAndGetOneParameter();
 
         BookKeeper bookKeeper = new BookKeeper(new InvoiceFactory());
         TaxPolicy taxPolicy = Mockito.mock(TaxPolicy.class);
-        Tax tax = new Tax(requestItemBuilder.getMoney(), "tax");
-        when(taxPolicy.calculateTax(productType, requestItemBuilder.getMoney())).thenAnswer(invocationOnMock -> tax);
+        Tax tax = new Tax(invoiceRequesWithParametersTestBuilder.getRequestItemBuilder().getMoney(), "tax");
+        when(taxPolicy.calculateTax(productType, invoiceRequesWithParametersTestBuilder.getRequestItemBuilder().getMoney())).thenAnswer(invocationOnMock -> tax);
 
         Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
         List<InvoiceLine> items = invoice.getItems();
@@ -46,16 +47,11 @@ public class BookKeeperTest {
 
     @Test
     public void shouldReturnInvoiceWithZeroEntriesForZeroElements() {
-        when(productData.getType()).thenAnswer(invocationOnMock -> productType);
-
-        noParamaterTestBuilder.setProductData(productData);
-        RequestItemTestBuilder requestItemBuilder = oneParameterTestBuilder.getRequestItemBuilder();
-
-        InvoiceRequest invoiceRequest = noParamaterTestBuilder.constructAndGet();
+        InvoiceRequest invoiceRequest = invoiceRequesWithParametersTestBuilder.constructAndGetZeroParameter();
         BookKeeper bookKeeper = new BookKeeper(new InvoiceFactory());
         TaxPolicy taxPolicy = Mockito.mock(TaxPolicy.class);
-        Tax tax = new Tax(requestItemBuilder.getMoney(), "tax");
-        when(taxPolicy.calculateTax(productType, requestItemBuilder.getMoney())).thenAnswer(invocationOnMock -> tax);
+        Tax tax = new Tax(invoiceRequesWithParametersTestBuilder.getRequestItemBuilder().getMoney(), "tax");
+        when(taxPolicy.calculateTax(productType, invoiceRequesWithParametersTestBuilder.getRequestItemBuilder().getMoney())).thenAnswer(invocationOnMock -> tax);
 
         Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
         List<InvoiceLine> items = invoice.getItems();
@@ -67,18 +63,11 @@ public class BookKeeperTest {
 
     @Test
     public void shouldReturnInvoiceWith100EntriesFor100Elements() {
-        when(productData.getType()).thenAnswer(invocationOnMock -> productType);
-        Money money = new Money(0.0);
-        RequestItem requestItem = new RequestItem(productData, 0, money);
-        ClientData clientData = new ClientDataBuilder().setId(new Id("1")).setName("prod").createClientData();
-        InvoiceRequest invoiceRequest = new InvoiceRequest(clientData);
-        for(int i = 0; i < 100; i++) {
-            invoiceRequest.add(requestItem);
-        }
+        InvoiceRequest invoiceRequest = invoiceRequesWithParametersTestBuilder.constructAndGetOneHundredParameter();
         BookKeeper bookKeeper = new BookKeeper(new InvoiceFactory());
         TaxPolicy taxPolicy = Mockito.mock(TaxPolicy.class);
-        Tax tax = new Tax(money, "tax");
-        when(taxPolicy.calculateTax(productType, money)).thenAnswer(invocationOnMock -> tax);
+        Tax tax = new Tax(invoiceRequesWithParametersTestBuilder.getRequestItemBuilder().getMoney(), "tax");
+        when(taxPolicy.calculateTax(productType, invoiceRequesWithParametersTestBuilder.getRequestItemBuilder().getMoney())).thenAnswer(invocationOnMock -> tax);
 
         Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
         List<InvoiceLine> items = invoice.getItems();
@@ -90,57 +79,41 @@ public class BookKeeperTest {
 
     @Test
     public void shouldInvokeCalculateTaxTwoTimesForTwoEntries() {
-        when(productData.getType()).thenAnswer(invocationOnMock -> productType);
-        Money money = new Money(0.0);
-        RequestItem requestItem = new RequestItem(productData, 0, money);
-        ClientData clientData = new ClientDataBuilder().setId(new Id("1")).setName("prod").createClientData();
-        InvoiceRequest invoiceRequest = new InvoiceRequest(clientData);
-        invoiceRequest.add(requestItem);
-        invoiceRequest.add(requestItem);
+        InvoiceRequest invoiceRequest = invoiceRequesWithParametersTestBuilder.constructAndGetTwoParameter();
         BookKeeper bookKeeper = new BookKeeper(new InvoiceFactory());
         TaxPolicy taxPolicy = Mockito.mock(TaxPolicy.class);
-        Tax tax = new Tax(money, "tax");
-        when(taxPolicy.calculateTax(productType, money)).thenAnswer(invocationOnMock -> tax);
+        Tax tax = new Tax(invoiceRequesWithParametersTestBuilder.getRequestItemBuilder().getMoney(), "tax");
+        when(taxPolicy.calculateTax(productType, invoiceRequesWithParametersTestBuilder.getRequestItemBuilder().getMoney())).thenAnswer(invocationOnMock -> tax);
 
         Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
 
-        verify(taxPolicy, times(2)).calculateTax(productType, money);           //should invoke calculateTax two times
+        verify(taxPolicy, times(2)).calculateTax(productType, invoiceRequesWithParametersTestBuilder.getRequestItemBuilder().getMoney());           //should invoke calculateTax two times
     }
 
     @Test
     public void shouldNotInvokeCalculateTaxForRequestWithNoElements() {
-        when(productData.getType()).thenAnswer(invocationOnMock -> productType);
-        Money money = new Money(0.0);
-        ClientData clientData = new ClientDataBuilder().setId(new Id("1")).setName("prod").createClientData();
-        InvoiceRequest invoiceRequest = new InvoiceRequest(clientData);
+        InvoiceRequest invoiceRequest = invoiceRequesWithParametersTestBuilder.constructAndGetZeroParameter();
         BookKeeper bookKeeper = new BookKeeper(new InvoiceFactory());
         TaxPolicy taxPolicy = Mockito.mock(TaxPolicy.class);
-        Tax tax = new Tax(money, "tax");
-        when(taxPolicy.calculateTax(productType, money)).thenAnswer(invocationOnMock -> tax);
+        Tax tax = new Tax(invoiceRequesWithParametersTestBuilder.getRequestItemBuilder().getMoney(), "tax");
+        when(taxPolicy.calculateTax(productType, invoiceRequesWithParametersTestBuilder.getRequestItemBuilder().getMoney())).thenAnswer(invocationOnMock -> tax);
 
         Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
 
-        verify(taxPolicy, times(0)).calculateTax(productType, money);           //should invoke calculateTax zero times
+        verify(taxPolicy, times(0)).calculateTax(productType, invoiceRequesWithParametersTestBuilder.getRequestItemBuilder().getMoney());           //should invoke calculateTax zero times
     }
 
     @Test
-    public void shouldInvokeCalculateTaxFifteenTimesForRequestWith100Elements() {
-        when(productData.getType()).thenAnswer(invocationOnMock -> productType);
-        Money money = new Money(0.0);
-        RequestItem requestItem = new RequestItem(productData, 0, money);
-        ClientData clientData = new ClientDataBuilder().setId(new Id("1")).setName("prod").createClientData();
-        InvoiceRequest invoiceRequest = new InvoiceRequest(clientData);
-        for (int i = 0; i < 100; i++) {
-            invoiceRequest.add(requestItem);
-        }
+    public void shouldInvokeCalculateTaxOneHundredTimesForRequestWithOneHundredElements() {
+        InvoiceRequest invoiceRequest = invoiceRequesWithParametersTestBuilder.constructAndGetOneHundredParameter();
         BookKeeper bookKeeper = new BookKeeper(new InvoiceFactory());
         TaxPolicy taxPolicy = Mockito.mock(TaxPolicy.class);
-        Tax tax = new Tax(money, "tax");
-        when(taxPolicy.calculateTax(productType, money)).thenAnswer(invocationOnMock -> tax);
+        Tax tax = new Tax(invoiceRequesWithParametersTestBuilder.getRequestItemBuilder().getMoney(), "tax");
+        when(taxPolicy.calculateTax(productType, invoiceRequesWithParametersTestBuilder.getRequestItemBuilder().getMoney())).thenAnswer(invocationOnMock -> tax);
 
         Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
 
-        verify(taxPolicy, times(100)).calculateTax(productType, money);           //should invoke calculateTax 100 times
+        verify(taxPolicy, times(100)).calculateTax(productType, invoiceRequesWithParametersTestBuilder.getRequestItemBuilder().getMoney());           //should invoke calculateTax 100 times
 
     }
 
