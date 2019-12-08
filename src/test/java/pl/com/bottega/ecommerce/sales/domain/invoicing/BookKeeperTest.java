@@ -24,12 +24,16 @@ public class BookKeeperTest {
     ProductData productData;
     ProductType productType;
     TaxPolicy taxPolicy;
+    Money money;
+    Tax tax;
 
     @Before
     public void Initialize() {
         productData = Mockito.mock(ProductData.class);
         productType = ProductType.STANDARD;
         taxPolicy = Mockito.mock(TaxPolicy.class);
+        money = new Money(1.0);
+        tax = new Tax(money, "tax");
     }
 
     private InvoiceRequest createInvoiceRequest(int quantity, Money money){
@@ -44,12 +48,10 @@ public class BookKeeperTest {
     public void shouldReturnInvoiceWithOneEntryForSingleElement()
     {
         when(productData.getType()).thenAnswer(invocationOnMock -> productType);
-
-        Money money = new Money(1.0);
         InvoiceRequest invoiceRequest = createInvoiceRequest(1, money);
 
         BookKeeper bookKeeper = new BookKeeper(new InvoiceFactory());
-        Tax tax = new Tax(money, "tax");
+
         when(taxPolicy.calculateTax(productType, money)).thenAnswer(invocationOnMock -> tax);
 
         Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
@@ -66,12 +68,9 @@ public class BookKeeperTest {
     public void shouldCalculateTaxTwiceForInvoiceWithTwoEntries()
     {
         when(productData.getType()).thenAnswer(invocationOnMock -> productType);
-
-        Money money = new Money(1.0);
         InvoiceRequest invoiceRequest = createInvoiceRequest(2, money);
         BookKeeper bookKeeper = new BookKeeper(new InvoiceFactory());
 
-        Tax tax = new Tax(money, "tax");
         when(taxPolicy.calculateTax(productType, money)).thenAnswer(invocationOnMock -> tax);
 
         Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
@@ -83,15 +82,10 @@ public class BookKeeperTest {
     public void shouldNotCalculateTaxForInvoiceWithNoEntries()
     {
         when(productData.getType()).thenAnswer(invocationOnMock -> productType);
-
-        Money money = new Money(0.0);
-
-
         InvoiceRequest invoiceRequest = createInvoiceRequest(0, money);
 
         BookKeeper bookKeeper = new BookKeeper(new InvoiceFactory());
 
-        Tax tax = new Tax(money, "tax");
         when(taxPolicy.calculateTax(productType, money)).thenAnswer(invocationOnMock -> tax);
 
         Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
@@ -103,12 +97,8 @@ public class BookKeeperTest {
     public void shouldCalculateTax500TimesForInvoiceWith500Entries()
     {
         when(productData.getType()).thenAnswer(invocationOnMock -> productType);
-
-        Money money = new Money(0.0);
         InvoiceRequest invoiceRequest = createInvoiceRequest(500, money);
         BookKeeper bookKeeper = new BookKeeper(new InvoiceFactory());
-
-        Tax tax = new Tax(money, "tax");
         when(taxPolicy.calculateTax(productType, money)).thenAnswer(invocationOnMock -> tax);
 
         Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
@@ -121,19 +111,13 @@ public class BookKeeperTest {
     {
         when(productData.getType()).thenAnswer(invocationOnMock -> productType);
 
-        Money money = new Money(0.0);
-        RequestItem requestItem = new RequestItem(productData, 0, money);
-        ClientData clientData = new ClientData(new Id("1"), "product");
-
         InvoiceRequest invoiceRequest = createInvoiceRequest(500, money);
         BookKeeper bookKeeper = new BookKeeper(new InvoiceFactory());
 
-        Tax tax = new Tax(money, "tax");
         when(taxPolicy.calculateTax(productType, money)).thenAnswer(invocationOnMock -> tax);
 
         Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
         List<InvoiceLine> items = invoice.getItems();
-
 
         assertThat(invoice, notNullValue());
         assertThat(items, notNullValue());
@@ -144,18 +128,14 @@ public class BookKeeperTest {
     public void shouldReturnInvoiceWithNoEntriesFor0Elements()
     {
         when(productData.getType()).thenAnswer(invocationOnMock -> productType);
-
-        Money money = new Money(0.0);
         InvoiceRequest invoiceRequest = createInvoiceRequest(0, money);
 
         BookKeeper bookKeeper = new BookKeeper(new InvoiceFactory());
 
-        Tax tax = new Tax(money, "tax");
         when(taxPolicy.calculateTax(productType, money)).thenAnswer(invocationOnMock -> tax);
 
         Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
         List<InvoiceLine> items = invoice.getItems();
-
 
         assertThat(invoice, notNullValue());
         assertThat(items, notNullValue());
