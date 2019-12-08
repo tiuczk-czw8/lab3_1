@@ -77,4 +77,26 @@ public class BookKeeperTest {
         assertThat(items.size(), is(0));                                                          //should be list with no elements
     }
 
+    @Test
+    public void shouldInvokeCalculateTaxFifteenTimesForRequestWith100Elements() {
+        when(productData.getType()).thenAnswer(invocationOnMock -> productType);
+        Money money = new Money(0.0);
+        RequestItem requestItem = new RequestItem(productData, 0, money);
+        ClientData clientData = new ClientData(new Id("1"), "prod");
+        InvoiceRequest invoiceRequest = new InvoiceRequest(clientData);
+        for (int i = 0; i < 100; i++) {
+            invoiceRequest.add(requestItem);
+        }
+        BookKeeper bookKeeper = new BookKeeper(new InvoiceFactory());
+        TaxPolicy taxPolicy = Mockito.mock(TaxPolicy.class);
+        Tax tax = new Tax(money, "tax");
+        when(taxPolicy.calculateTax(productType, money)).thenAnswer(invocationOnMock -> tax);
+
+        Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
+        List<InvoiceLine> items = invoice.getItems();
+
+        verify(taxPolicy, times(100)).calculateTax(productType, money);           //should invoke calculateTax 100 times
+        assertThat(items.size(), is(100));                                                       //should be list with 100 elements
+    }
+
 }
