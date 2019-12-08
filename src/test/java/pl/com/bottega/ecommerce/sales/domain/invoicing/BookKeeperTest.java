@@ -39,6 +39,48 @@ public class BookKeeperTest {
     }
 
     @Test
+    public void shouldReturnInvoiceWithZeroEntriesForZeroElements() {
+        when(productData.getType()).thenAnswer(invocationOnMock -> productType);
+        Money money = new Money(0.0);
+        ClientData clientData = new ClientData(new Id("1"), "prod");
+        InvoiceRequest invoiceRequest = new InvoiceRequest(clientData);
+        BookKeeper bookKeeper = new BookKeeper(new InvoiceFactory());
+        TaxPolicy taxPolicy = Mockito.mock(TaxPolicy.class);
+        Tax tax = new Tax(money, "tax");
+        when(taxPolicy.calculateTax(productType, money)).thenAnswer(invocationOnMock -> tax);
+
+        Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
+        List<InvoiceLine> items = invoice.getItems();
+
+        assertThat(invoice, notNullValue());
+        assertThat(items, notNullValue());
+        assertThat(items.size(), is(0));
+    }
+
+    @Test
+    public void shouldReturnInvoiceWith100EntriesFor100Elements() {
+        when(productData.getType()).thenAnswer(invocationOnMock -> productType);
+        Money money = new Money(0.0);
+        RequestItem requestItem = new RequestItem(productData, 0, money);
+        ClientData clientData = new ClientData(new Id("1"), "prod");
+        InvoiceRequest invoiceRequest = new InvoiceRequest(clientData);
+        for(int i = 0; i < 100; i++) {
+            invoiceRequest.add(requestItem);
+        }
+        BookKeeper bookKeeper = new BookKeeper(new InvoiceFactory());
+        TaxPolicy taxPolicy = Mockito.mock(TaxPolicy.class);
+        Tax tax = new Tax(money, "tax");
+        when(taxPolicy.calculateTax(productType, money)).thenAnswer(invocationOnMock -> tax);
+
+        Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
+        List<InvoiceLine> items = invoice.getItems();
+
+        assertThat(invoice, notNullValue());
+        assertThat(items, notNullValue());
+        assertThat(items.size(), is(100));
+    }
+
+    @Test
     public void shouldInvokeCalculateTaxTwoTimesForTwoEntries() {
         when(productData.getType()).thenAnswer(invocationOnMock -> productType);
         Money money = new Money(0.0);
