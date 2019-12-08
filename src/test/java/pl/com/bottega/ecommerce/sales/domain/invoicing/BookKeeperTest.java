@@ -56,7 +56,6 @@ public class BookKeeperTest {
         List<InvoiceLine> items = invoice.getItems();
 
         verify(taxPolicy, times(2)).calculateTax(productType, money);           //should invoke calculateTax two times
-        assertThat(items.size(), is(2));                                                          //should be list with two items
     }
 
     @Test
@@ -74,7 +73,6 @@ public class BookKeeperTest {
         List<InvoiceLine> items = invoice.getItems();
 
         verify(taxPolicy, times(0)).calculateTax(productType, money);           //should invoke calculateTax zero times
-        assertThat(items.size(), is(0));                                                          //should be list with no elements
     }
 
     @Test
@@ -96,7 +94,6 @@ public class BookKeeperTest {
         List<InvoiceLine> items = invoice.getItems();
 
         verify(taxPolicy, times(100)).calculateTax(productType, money);           //should invoke calculateTax 100 times
-        assertThat(items.size(), is(100));                                                       //should be list with 100 elements
     }
 
 }
