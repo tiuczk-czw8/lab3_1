@@ -53,7 +53,6 @@ public class BookKeeperTest {
         when(taxPolicy.calculateTax(productType, money)).thenAnswer(invocationOnMock -> tax);
 
         Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
-        List<InvoiceLine> items = invoice.getItems();
 
         verify(taxPolicy, times(2)).calculateTax(productType, money);           //should invoke calculateTax two times
     }
@@ -70,7 +69,6 @@ public class BookKeeperTest {
         when(taxPolicy.calculateTax(productType, money)).thenAnswer(invocationOnMock -> tax);
 
         Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
-        List<InvoiceLine> items = invoice.getItems();
 
         verify(taxPolicy, times(0)).calculateTax(productType, money);           //should invoke calculateTax zero times
     }
@@ -91,9 +89,9 @@ public class BookKeeperTest {
         when(taxPolicy.calculateTax(productType, money)).thenAnswer(invocationOnMock -> tax);
 
         Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
-        List<InvoiceLine> items = invoice.getItems();
 
         verify(taxPolicy, times(100)).calculateTax(productType, money);           //should invoke calculateTax 100 times
+
     }
 
 }
