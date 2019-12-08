@@ -75,7 +75,6 @@ public class BookKeeperTest {
         when(taxPolicy.calculateTax(productType, money)).thenAnswer(invocationOnMock -> tax);
 
         Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
-        List<InvoiceLine> items = invoice.getItems();
 
         verify(taxPolicy,times(2)).calculateTax(productType,money);
     }
@@ -95,7 +94,6 @@ public class BookKeeperTest {
         when(taxPolicy.calculateTax(productType, money)).thenAnswer(invocationOnMock -> tax);
 
         Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
-        List<InvoiceLine> items = invoice.getItems();
 
         verify(taxPolicy,times(0)).calculateTax(productType,money);
     }
@@ -119,11 +117,60 @@ public class BookKeeperTest {
         when(taxPolicy.calculateTax(productType, money)).thenAnswer(invocationOnMock -> tax);
 
         Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
-        List<InvoiceLine> items = invoice.getItems();
 
         verify(taxPolicy,times(500)).calculateTax(productType,money);
     }
 
+    @Test
+    public void shouldReturnInvoiceWith100EntriesFor100Elements()
+    {
+        when(productData.getType()).thenAnswer(invocationOnMock -> productType);
 
+        Money money = new Money(0.0);
+        RequestItem requestItem = new RequestItem(productData, 0, money);
+        ClientData clientData = new ClientData(new Id("1"), "product");
+
+        InvoiceRequest invoiceRequest = new InvoiceRequest(clientData);
+        for (int i = 0; i < 100; i++){
+            invoiceRequest.add(requestItem);
+        }
+        BookKeeper bookKeeper = new BookKeeper(new InvoiceFactory());
+
+        Tax tax = new Tax(money, "tax");
+        when(taxPolicy.calculateTax(productType, money)).thenAnswer(invocationOnMock -> tax);
+
+        Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
+        List<InvoiceLine> items = invoice.getItems();
+
+
+        assertThat(invoice, notNullValue());
+        assertThat(items, notNullValue());
+        assertThat(items.size(), is(100));
+
+    }
+    @Test
+    public void shouldReturnInvoiceWithNoEntriesFor0Elements()
+    {
+        when(productData.getType()).thenAnswer(invocationOnMock -> productType);
+
+        Money money = new Money(0.0);
+        ClientData clientData = new ClientData(new Id("1"), "product");
+
+        InvoiceRequest invoiceRequest = new InvoiceRequest(clientData);
+
+        BookKeeper bookKeeper = new BookKeeper(new InvoiceFactory());
+
+        Tax tax = new Tax(money, "tax");
+        when(taxPolicy.calculateTax(productType, money)).thenAnswer(invocationOnMock -> tax);
+
+        Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
+        List<InvoiceLine> items = invoice.getItems();
+
+
+        assertThat(invoice, notNullValue());
+        assertThat(items, notNullValue());
+        assertThat(items.size(), is(0));
+
+    }
 
 }
