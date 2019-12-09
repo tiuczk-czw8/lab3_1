@@ -87,5 +87,22 @@ public class BookKeeperTests {
         assertThat(items, notNullValue());
         assertThat(items.size(), is(100));
     }
-    
+
+    @Test
+    public void calculateTaxForInvoiceWithNoEntries() {
+        when(productData.getType()).thenAnswer(invocationOnMock -> productType);
+
+        ClientData clientData = new ClientData(new Id("1"), "product");
+        InvoiceRequest invoiceRequest = new InvoiceRequest(clientData);
+        BookKeeper bookKeeper = new BookKeeper(new InvoiceFactory());
+        when(taxPolicy.calculateTax(productType, money)).thenAnswer(invocationOnMock -> tax);
+        Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
+        List<InvoiceLine> items = invoice.getItems();
+        verify(taxPolicy,times(0)).calculateTax(productType,money);
+
+        assertThat(invoice, notNullValue());
+        assertThat(items, notNullValue());
+        assertThat(items.size(), is(0));
+    }
+
 }
