@@ -2,8 +2,7 @@ package pl.com.bottega.ecommerce.sales.domain.invoicing;
 
 import org.junit.Before;
 import org.junit.Test;
-import pl.com.bottega.ecommerce.canonicalmodel.publishedlanguage.ClientData;
-import pl.com.bottega.ecommerce.canonicalmodel.publishedlanguage.Id;
+import pl.com.bottega.ecommerce.sales.domain.invoicing.TestBuilders.InvoiceBuilderImpl;
 import pl.com.bottega.ecommerce.sales.domain.productscatalog.ProductData;
 import pl.com.bottega.ecommerce.sales.domain.productscatalog.ProductType;
 import pl.com.bottega.ecommerce.sharedkernel.Money;
@@ -22,7 +21,6 @@ public class BookKeeperTest {
     private ProductType productType;
     private Tax tax;
     private Money money;
-    private ClientData clientData;
 
     @Before
     public void init() {
@@ -31,16 +29,17 @@ public class BookKeeperTest {
         productType = ProductType.FOOD;
         money = new Money(10);
         tax = new Tax(money, "23%");
-        clientData = new ClientData(new Id("1"), "Client");
     }
 
     @Test
     public void invoiceRequestsOneItemReturnsInvoiceWithOneItem() {
         when(productData.getType()).thenAnswer(invocationOnMock -> productType);
-        RequestItem requestItem = new RequestItem(productData, 1, money);
 
-        InvoiceRequest invoiceRequest = new InvoiceRequest(clientData);
-        invoiceRequest.add(requestItem);
+        InvoiceBuilderImpl invoiceBuilderImpl = new InvoiceBuilderImpl();
+        invoiceBuilderImpl.setItemsQuantity(1);
+        invoiceBuilderImpl.setProductData(productData);
+        invoiceBuilderImpl.setMoney(money);
+        InvoiceRequest invoiceRequest = invoiceBuilderImpl.setInvoiceRequest();
 
         BookKeeper bookKeeper = new BookKeeper(new InvoiceFactory());
         when(taxPolicy.calculateTax(productType, money)).thenAnswer(invocationOnMock -> tax);
@@ -54,13 +53,14 @@ public class BookKeeperTest {
     }
 
     @Test
-    public void claculateTaxForTwoElementsInInvoice() {
+    public void calculateTaxForTwoElementsInInvoice() {
         when(productData.getType()).thenAnswer(invocationOnMock -> productType);
-        RequestItem requestItem = new RequestItem(productData, 1, money);
 
-        InvoiceRequest invoiceRequest = new InvoiceRequest(clientData);
-        invoiceRequest.add(requestItem);
-        invoiceRequest.add(requestItem);
+        InvoiceBuilderImpl invoiceBuilderImpl = new InvoiceBuilderImpl();
+        invoiceBuilderImpl.setItemsQuantity(2);
+        invoiceBuilderImpl.setProductData(productData);
+        invoiceBuilderImpl.setMoney(money);
+        InvoiceRequest invoiceRequest = invoiceBuilderImpl.setInvoiceRequest();
 
         BookKeeper bookKeeper = new BookKeeper(new InvoiceFactory());
         when(taxPolicy.calculateTax(productType, money)).thenAnswer(invocationOnMock -> tax);
@@ -79,7 +79,11 @@ public class BookKeeperTest {
     public void noElementsInInvoiceShloudNotCalculateTax() {
         when(productData.getType()).thenAnswer(invocationOnMock -> productType);
 
-        InvoiceRequest invoiceRequest = new InvoiceRequest(clientData);
+        InvoiceBuilderImpl invoiceBuilderImpl = new InvoiceBuilderImpl();
+        invoiceBuilderImpl.setItemsQuantity(0);
+        invoiceBuilderImpl.setProductData(productData);
+        invoiceBuilderImpl.setMoney(money);
+        InvoiceRequest invoiceRequest = invoiceBuilderImpl.setInvoiceRequest();
 
         BookKeeper bookKeeper = new BookKeeper(new InvoiceFactory());
         when(taxPolicy.calculateTax(productType, money)).thenAnswer(invocationOnMock -> tax);
@@ -95,12 +99,12 @@ public class BookKeeperTest {
     @Test
     public void shouldCalculateTaxFor1000ElementsInInvoice() {
         when(productData.getType()).thenAnswer(invocationOnMock -> productType);
-        RequestItem requestItem = new RequestItem(productData, 1, money);
-        InvoiceRequest invoiceRequest = new InvoiceRequest(clientData);
+        InvoiceBuilderImpl invoiceBuilderImpl = new InvoiceBuilderImpl();
+        invoiceBuilderImpl.setItemsQuantity(1000);
+        invoiceBuilderImpl.setProductData(productData);
+        invoiceBuilderImpl.setMoney(money);
+        InvoiceRequest invoiceRequest = invoiceBuilderImpl.setInvoiceRequest();
 
-        for (int i = 0; i < 1000; i++) {
-            invoiceRequest.add(requestItem);
-        }
         BookKeeper bookKeeper = new BookKeeper(new InvoiceFactory());
         when(taxPolicy.calculateTax(productType, money)).thenAnswer(invocationOnMock -> tax);
 
