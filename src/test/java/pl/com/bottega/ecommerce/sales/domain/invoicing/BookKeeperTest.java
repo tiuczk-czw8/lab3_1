@@ -38,12 +38,7 @@ public class BookKeeperTest{
         bookKeeper = new BookKeeper(new InvoiceFactory());
         when(productData.getType()).thenReturn(productType);
 
-        InvoiceBuilderImpl invoiceBuilderImpl = new InvoiceBuilderImpl();
-        invoiceBuilderImpl.setItemsQuantity(1);
-        invoiceBuilderImpl.setProductData(productData);
-        invoiceBuilderImpl.setMoney(money);
-        request = invoiceBuilderImpl.build();
-
+        request=buildRequest(1);
         when(taxPolicy.calculateTax(productType, money)).thenReturn(tax);
         invoice = bookKeeper.issuance( request,taxPolicy);
         invoiceLines = invoice.getItems();
@@ -59,11 +54,7 @@ public class BookKeeperTest{
         bookKeeper = new BookKeeper(new InvoiceFactory());
         when(productData.getType()).thenReturn(productType);
 
-        InvoiceBuilderImpl invoiceBuilderImpl = new InvoiceBuilderImpl();
-        invoiceBuilderImpl.setItemsQuantity(2);
-        invoiceBuilderImpl.setProductData(productData);
-        invoiceBuilderImpl.setMoney(money);
-        request = invoiceBuilderImpl.build();
+        request = buildRequest(2);
 
         when(taxPolicy.calculateTax(productType, money)).thenReturn(tax);
         invoice = bookKeeper.issuance( request,taxPolicy);
@@ -79,12 +70,8 @@ public class BookKeeperTest{
 
         bookKeeper = new BookKeeper(new InvoiceFactory());
         when(productData.getType()).thenReturn(productType);
-
-        InvoiceBuilderImpl invoiceBuilderImpl = new InvoiceBuilderImpl();
-        invoiceBuilderImpl.setItemsQuantity(0);
-        invoiceBuilderImpl.setProductData(productData);
-        invoiceBuilderImpl.setMoney(money);
-        request = invoiceBuilderImpl.build();
+        
+        request = buildRequest(0);
 
         when(taxPolicy.calculateTax(productType, money)).thenReturn(tax);
         invoice = bookKeeper.issuance( request,taxPolicy);
@@ -100,11 +87,7 @@ public class BookKeeperTest{
         bookKeeper = new BookKeeper(new InvoiceFactory());
         when(productData.getType()).thenReturn(productType);
 
-        InvoiceBuilderImpl invoiceBuilderImpl = new InvoiceBuilderImpl();
-        invoiceBuilderImpl.setItemsQuantity(10);
-        invoiceBuilderImpl.setProductData(productData);
-        invoiceBuilderImpl.setMoney(money);
-        request = invoiceBuilderImpl.build();
+        request = buildRequest(10);
 
         when(taxPolicy.calculateTax(productType, money)).thenReturn(tax);
         invoice = bookKeeper.issuance( request,taxPolicy);
@@ -113,5 +96,12 @@ public class BookKeeperTest{
         verify(taxPolicy, times(10)).calculateTax(productType, money);
         assertThat(invoiceLines, notNullValue());
         assertThat(invoiceLines.size(), Matchers.equalTo(10));
+    }
+    private InvoiceRequest buildRequest(int quantity){
+        InvoiceBuilderImpl invoiceBuilderImpl = new InvoiceBuilderImpl();
+        invoiceBuilderImpl.setItemsQuantity(quantity);
+        invoiceBuilderImpl.setProductData(productData);
+        invoiceBuilderImpl.setMoney(money);
+        return invoiceBuilderImpl.build();
     }
 }
