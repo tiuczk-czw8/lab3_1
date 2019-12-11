@@ -1,5 +1,3 @@
-import java.util.List;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -11,7 +9,10 @@ import pl.com.bottega.ecommerce.sales.domain.productscatalog.ProductData;
 import pl.com.bottega.ecommerce.sales.domain.productscatalog.ProductType;
 import pl.com.bottega.ecommerce.sharedkernel.Money;
 
-import static org.hamcrest.Matchers.*;
+import java.util.List;
+
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.*;
 
@@ -32,18 +33,25 @@ public class BookKeeperTest {
 
     @Test
     public void shouldReturnInvoiceWithOneEntryForOneListElement() {
-        InvoiceRequest invoiceRequest = invoiceRequesWithParametersTestBuilder.constructAndGetOneParameter();
-
+        when(productData.getType()).thenAnswer(invocationOnMock -> productType);
+        Money money = new Money(0.0);
+        RequestItem requestItem = new RequestItem(productData, 0, money);
+        ClientData clientData = new ClientData(new Id("1"), "prod");
+        InvoiceRequest invoiceRequest = new InvoiceRequest(clientData);
+        invoiceRequest.add(requestItem);
         BookKeeper bookKeeper = new BookKeeper(new InvoiceFactory());
         TaxPolicy taxPolicy = Mockito.mock(TaxPolicy.class);
-        Tax tax = new Tax(invoiceRequesWithParametersTestBuilder.getRequestItemBuilder().getMoney(), "tax");
-        when(taxPolicy.calculateTax(productType, invoiceRequesWithParametersTestBuilder.getRequestItemBuilder().getMoney())).thenAnswer(invocationOnMock -> tax);
+        Tax tax = new Tax(money, "tax");
+        when(taxPolicy.calculateTax(productType, money)).thenAnswer(invocationOnMock -> tax);
 
         Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
+        List<InvoiceLine> items = invoice.getItems();
 
         assertThat(invoice, notNullValue());
-
+        assertThat(items, notNullValue());
+        assertThat(items.size(), is(1));
     }
+
 
     @Test
     public void shouldReturnInvoiceWithZeroEntriesForZeroElements() {
@@ -110,6 +118,7 @@ public class BookKeeperTest {
         verify(taxPolicy, times(100)).calculateTax(productType, invoiceRequesWithParametersTestBuilder.getRequestItemBuilder().getMoney());           //should invoke calculateTax 100 times
 
     }
+
     @Test
     public void shouldInvokeCalculateTaxFifteenTimesForRequestWith100Elements() {
         when(productData.getType()).thenAnswer(invocationOnMock -> productType);
@@ -131,5 +140,6 @@ public class BookKeeperTest {
         verify(taxPolicy, times(100)).calculateTax(productType, money);           //should invoke calculateTax 100 times
         assertThat(items.size(), is(100));                                                       //should be list with 100 elements
     }
+
 
 }
