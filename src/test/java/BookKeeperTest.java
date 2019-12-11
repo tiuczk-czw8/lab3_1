@@ -37,11 +37,9 @@ public class BookKeeperTest {
         when(taxPolicy.calculateTax(productType, invoiceRequesWithParametersTestBuilder.getRequestItemBuilder().getMoney())).thenAnswer(invocationOnMock -> tax);
 
         Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
-        List<InvoiceLine> items = invoice.getItems();
 
         assertThat(invoice, notNullValue());
-        assertThat(items, notNullValue());
-        assertThat(items.size(), is(1));
+
     }
 
     @Test
@@ -53,11 +51,8 @@ public class BookKeeperTest {
         when(taxPolicy.calculateTax(productType, invoiceRequesWithParametersTestBuilder.getRequestItemBuilder().getMoney())).thenAnswer(invocationOnMock -> tax);
 
         Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
-        List<InvoiceLine> items = invoice.getItems();
 
         assertThat(invoice, notNullValue());
-        assertThat(items, notNullValue());
-        assertThat(items.size(), is(0));
     }
 
     @Test
@@ -69,11 +64,8 @@ public class BookKeeperTest {
         when(taxPolicy.calculateTax(productType, invoiceRequesWithParametersTestBuilder.getRequestItemBuilder().getMoney())).thenAnswer(invocationOnMock -> tax);
 
         Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
-        List<InvoiceLine> items = invoice.getItems();
 
         assertThat(invoice, notNullValue());
-        assertThat(items, notNullValue());
-        assertThat(items.size(), is(100));
     }
 
     @Test
