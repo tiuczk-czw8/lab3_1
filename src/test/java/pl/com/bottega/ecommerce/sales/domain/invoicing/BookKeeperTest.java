@@ -99,6 +99,7 @@ public class BookKeeperTest {
     @Test
     public void shouldCalculateTaxFor1000ElementsInInvoice() {
         when(productData.getType()).thenAnswer(invocationOnMock -> productType);
+
         InvoiceBuilderImpl invoiceBuilderImpl = new InvoiceBuilderImpl();
         invoiceBuilderImpl.setItemsQuantity(1000);
         invoiceBuilderImpl.setProductData(productData);
