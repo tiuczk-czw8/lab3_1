@@ -56,6 +56,20 @@ public class BookKeeperTest {
         assertThat(items.size(), is(2));
     }
 
-   
+    @Test
+    public void doesItNotInvokeCalculationTaxForRequestWithZeroElements() {
+        when(productData.getType()).thenAnswer(invocationOnMock -> productType);
+        Money money = new Money(0.0);
+        ClientData clientData = new ClientData(new Id("0"), "p");
+        InvoiceRequest invoiceRequest = new InvoiceRequest(clientData);
+        BookKeeper bookKeeper = new BookKeeper(new InvoiceFactory());
+        TaxPolicy taxPolicy = Mockito.mock(TaxPolicy.class);
+        Tax tax = new Tax(money, "taxValue");
+        when(taxPolicy.calculateTax(productType, money)).thenAnswer(invocationOnMock -> tax);
+        Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
+        List<InvoiceLine> invoiceLineItems = invoice.getItems();
+        verify(taxPolicy, times(0)).calculateTax(productType, money);
+        assertThat(invoiceLineItems.size(), is(0));
+    }
 
 }
