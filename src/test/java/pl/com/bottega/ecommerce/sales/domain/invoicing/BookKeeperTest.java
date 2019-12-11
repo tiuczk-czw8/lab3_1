@@ -72,4 +72,24 @@ public class BookKeeperTest {
         assertThat(invoiceLineItems.size(), is(0));
     }
 
+    @Test
+    public void doesItInvokeCalculationTaxTwoHundredTimesForRequestWithTwoHundredElements() {
+        when(productData.getType()).thenAnswer(invocationOnMock -> productType);
+        Money money = new Money(0.0);
+        RequestItem requestItem = new RequestItem(productData, 0, money);
+        ClientData clientData = new ClientData(new Id("0"), "p");
+        InvoiceRequest invoiceRequest = new InvoiceRequest(clientData);
+        for (int i = 0; i < 200; i++){
+            invoiceRequest.add(requestItem);
+        }
+        BookKeeper bookKeeper = new BookKeeper(new InvoiceFactory());
+        TaxPolicy taxPolicy = Mockito.mock(TaxPolicy.class);
+        Tax tax = new Tax(money, "taxValue");
+        when(taxPolicy.calculateTax(productType, money)).thenAnswer(invocationOnMock -> tax);
+        Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
+        List<InvoiceLine> invoiceLineItems = invoice.getItems();
+        verify(taxPolicy, times(200)).calculateTax(productType, money);
+        assertThat(invoiceLineItems.size(), is(200));
+    }
+
 }
