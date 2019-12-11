@@ -65,4 +65,17 @@ public class BookKeeperTest{
         assertThat(invoiceLines.size(), Matchers.equalTo(2));
     }
 
+    @Test
+    public  void returnZeroPositionForZeroItemInInvoiceTaxCalculatedZeroTimes(){
+
+        bookKeeper = new BookKeeper(new InvoiceFactory());
+        when(productData.getType()).thenReturn(productType);
+        when(taxPolicy.calculateTax(productType, money)).thenReturn(tax);
+        invoice = bookKeeper.issuance( request,taxPolicy);
+        invoiceLines = invoice.getItems();
+
+        verify(taxPolicy, times(0)).calculateTax(productType, money);
+        assertThat(invoiceLines, notNullValue());
+        assertThat(invoiceLines.size(), Matchers.equalTo(0));
+    }
 }
