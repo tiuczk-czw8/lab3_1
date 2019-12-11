@@ -1,18 +1,17 @@
-import java.util.List;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
-import org.mockito.verification.VerificationMode;
-import pl.com.bottega.ecommerce.canonicalmodel.publishedlanguage.ClientData;
-import pl.com.bottega.ecommerce.canonicalmodel.publishedlanguage.Id;
 import pl.com.bottega.ecommerce.sales.domain.invoicing.*;
 import pl.com.bottega.ecommerce.sales.domain.productscatalog.ProductData;
 import pl.com.bottega.ecommerce.sales.domain.productscatalog.ProductType;
 import pl.com.bottega.ecommerce.sharedkernel.Money;
-import static org.hamcrest.Matchers.*;
+import testBuilders.InvoiceTestBuilderImpl;
+
+import java.util.List;
+
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Matchers.isNull;
 import static org.mockito.Mockito.*;
 
 public class BookKeeperTests {
@@ -35,10 +34,11 @@ public class BookKeeperTests {
     @Test
     public void invoiceWithOneEntryForOneListElement() {
         when(productData.getType()).thenAnswer(invocationOnMock -> productType);
-        RequestItem requestItem = new RequestItem(productData, 0, money);
-        ClientData clientData = new ClientData(new Id("1"), "prod");
-        InvoiceRequest invoiceRequest = new InvoiceRequest(clientData);
-        invoiceRequest.add(requestItem);
+        InvoiceTestBuilderImpl invoiceTestBuilderImp = new InvoiceTestBuilderImpl();
+        invoiceTestBuilderImp.setItemsQuantity(1);
+        invoiceTestBuilderImp.setProductData(productData);
+        invoiceTestBuilderImp.setMoney(money);
+        InvoiceRequest invoiceRequest = invoiceTestBuilderImp.build();
         BookKeeper bookKeeper = new BookKeeper(new InvoiceFactory());
         when(taxPolicy.calculateTax(productType, money)).thenAnswer(invocationOnMock -> tax);
 
@@ -53,11 +53,11 @@ public class BookKeeperTests {
     @Test
     public void calculateTaxTwiceForInvoiceWithTwoEntries() {
         when(productData.getType()).thenAnswer(invocationOnMock -> productType);
-        RequestItem requestItem = new RequestItem(productData, 0, money);
-        ClientData clientData = new ClientData(new Id("1"), "product");
-        InvoiceRequest invoiceRequest = new InvoiceRequest(clientData);
-        invoiceRequest.add(requestItem);
-        invoiceRequest.add(requestItem);
+        InvoiceTestBuilderImpl invoiceTestBuilderImp = new InvoiceTestBuilderImpl();
+        invoiceTestBuilderImp.setItemsQuantity(2);
+        invoiceTestBuilderImp.setProductData(productData);
+        invoiceTestBuilderImp.setMoney(money);
+        InvoiceRequest invoiceRequest = invoiceTestBuilderImp.build();
         BookKeeper bookKeeper = new BookKeeper(new InvoiceFactory());
         when(taxPolicy.calculateTax(productType, money)).thenAnswer(invocationOnMock -> tax);
         Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
@@ -68,20 +68,20 @@ public class BookKeeperTests {
         assertThat(items, notNullValue());
         assertThat(items.size(), is(2));
     }
+
     @Test
     public void calculateTaxForInvoiceWith100Entries() {
         when(productData.getType()).thenAnswer(invocationOnMock -> productType);
-        RequestItem requestItem = new RequestItem(productData, 0, money);
-        ClientData clientData = new ClientData(new Id("1"), "product");
+        InvoiceTestBuilderImpl invoiceTestBuilderImp = new InvoiceTestBuilderImpl();
+        invoiceTestBuilderImp.setItemsQuantity(100);
+        invoiceTestBuilderImp.setProductData(productData);
+        invoiceTestBuilderImp.setMoney(money);
+        InvoiceRequest invoiceRequest = invoiceTestBuilderImp.build();
         BookKeeper bookKeeper = new BookKeeper(new InvoiceFactory());
-        InvoiceRequest invoiceRequest = new InvoiceRequest(clientData);
-        for (int i = 0; i < 100; i++){
-            invoiceRequest.add(requestItem);
-        }
         when(taxPolicy.calculateTax(productType, money)).thenAnswer(invocationOnMock -> tax);
         Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
         List<InvoiceLine> items = invoice.getItems();
-        verify(taxPolicy,times(100)).calculateTax(productType,money);
+        verify(taxPolicy, times(100)).calculateTax(productType, money);
 
         assertThat(invoice, notNullValue());
         assertThat(items, notNullValue());
@@ -92,13 +92,16 @@ public class BookKeeperTests {
     public void calculateTaxForInvoiceWithNoEntries() {
         when(productData.getType()).thenAnswer(invocationOnMock -> productType);
 
-        ClientData clientData = new ClientData(new Id("1"), "product");
-        InvoiceRequest invoiceRequest = new InvoiceRequest(clientData);
+        InvoiceTestBuilderImpl invoiceTestBuilderImp = new InvoiceTestBuilderImpl();
+        invoiceTestBuilderImp.setItemsQuantity(0);
+        invoiceTestBuilderImp.setProductData(productData);
+        invoiceTestBuilderImp.setMoney(money);
+        InvoiceRequest invoiceRequest = invoiceTestBuilderImp.build();
         BookKeeper bookKeeper = new BookKeeper(new InvoiceFactory());
         when(taxPolicy.calculateTax(productType, money)).thenAnswer(invocationOnMock -> tax);
         Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
         List<InvoiceLine> items = invoice.getItems();
-        verify(taxPolicy,times(0)).calculateTax(productType,money);
+        verify(taxPolicy, times(0)).calculateTax(productType, money);
 
         assertThat(invoice, notNullValue());
         assertThat(items, notNullValue());
