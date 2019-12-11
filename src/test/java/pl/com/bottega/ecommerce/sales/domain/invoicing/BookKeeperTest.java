@@ -10,7 +10,8 @@ import pl.com.bottega.ecommerce.sharedkernel.Money;
 
 import java.util.List;
 
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.*;
 
@@ -29,7 +30,7 @@ public class BookKeeperTest {
         taxPolicy = mock(TaxPolicy.class);
         productType = ProductType.FOOD;
         money = new Money(10);
-        tax = new Tax(money, "50%");
+        tax = new Tax(money, "23%");
         clientData = new ClientData(new Id("1"), "Client");
     }
 
@@ -72,5 +73,22 @@ public class BookKeeperTest {
         assertThat(elements.size(), is(2));
 
 
+    }
+
+    @Test
+    public void noElementsInInvoiceShloudNotCalculateTax() {
+        when(productData.getType()).thenAnswer(invocationOnMock -> productType);
+
+        InvoiceRequest invoiceRequest = new InvoiceRequest(clientData);
+
+        BookKeeper bookKeeper = new BookKeeper(new InvoiceFactory());
+        when(taxPolicy.calculateTax(productType, money)).thenAnswer(invocationOnMock -> tax);
+
+        Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
+        List<InvoiceLine> elements = invoice.getItems();
+
+        verify(taxPolicy, times(0)).calculateTax(productType, money);
+        assertThat(elements, notNullValue());
+        assertThat(elements.size(), is(0));
     }
 }
