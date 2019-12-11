@@ -2,8 +2,10 @@ package pl.com.bottega.ecommerce.sales.domain.client;
 
 import pl.com.bottega.ddd.support.domain.BaseAggregateRoot;
 import pl.com.bottega.ecommerce.canonicalmodel.publishedlanguage.ClientData;
+import pl.com.bottega.ecommerce.canonicalmodel.publishedlanguage.ClientDataBuilder;
 import pl.com.bottega.ecommerce.sales.domain.payment.PaymentFactory;
 import pl.com.bottega.ecommerce.sharedkernel.Money;
+
 
 public class Client extends BaseAggregateRoot {
     private String name;
