@@ -57,11 +57,7 @@ public class BookKeeperTest {
         invoiceRequest.add(requestItem);
 
         Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
-        List<InvoiceLine> items = invoice.getItems();
-
-        assertThat(invoice, notNullValue());
-        assertThat(items, notNullValue());
-        assertThat(items.size(), is(1));
+        testIssuanceState(invoice, 1);
     }
 
     @Test
@@ -71,7 +67,17 @@ public class BookKeeperTest {
         invoiceRequest.add(requestItem);
 
         Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
+        testIssuanceBehaviour(invoice, 2);
+    }
 
-        verify(taxPolicy, times(2)).calculateTax(productType, money);
+    private void testIssuanceState(Invoice invoice, int numberOfItems) {
+        List<InvoiceLine> items = invoice.getItems();
+        assertThat(invoice, notNullValue());
+        assertThat(items, notNullValue());
+        assertThat(items.size(), is(numberOfItems));
+    }
+
+    private void testIssuanceBehaviour(Invoice invoice, int numberOfCalls) {
+        verify(taxPolicy, times(numberOfCalls)).calculateTax(productType, money);
     }
 }
