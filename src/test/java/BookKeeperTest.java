@@ -54,14 +54,13 @@ public class BookKeeperTest {
     }
 
     @Test
-    public void shouldInvokeCalculateTaxTwoTimesForTwoEntries() {
+    public void shouldNotInvokeCalculateTaxForRequestWithNoElements() {
         initData();
-        invoiceRequest.add(requestItem);
-        invoiceRequest.add(requestItem);
+
         when(taxPolicy.calculateTax(productType, money)).thenAnswer(invocationOnMock -> tax);
         Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
         List<InvoiceLine> items = invoice.getItems();
-        assertThat(items.size(), is(2));
-        verify(taxPolicy, times(2)).calculateTax(productType, money);           //should invoke calculateTax two times
+        assertThat(items.size(), is(0));
+        verify(taxPolicy, never()).calculateTax(productType, money);
     }
 }
