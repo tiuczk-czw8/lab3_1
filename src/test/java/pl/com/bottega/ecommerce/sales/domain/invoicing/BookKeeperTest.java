@@ -6,6 +6,7 @@ import org.mockito.internal.matchers.Matches;
 import pl.com.bottega.ecommerce.canonicalmodel.publishedlanguage.ClientData;
 import pl.com.bottega.ecommerce.canonicalmodel.publishedlanguage.Id;
 import pl.com.bottega.ecommerce.sales.domain.invoicing.*;
+import pl.com.bottega.ecommerce.sales.domain.invoicing.TestBuilders.InvoiceBuilderImpl;
 import pl.com.bottega.ecommerce.sales.domain.productscatalog.ProductData;
 import pl.com.bottega.ecommerce.sales.domain.productscatalog.ProductType;
 import pl.com.bottega.ecommerce.sharedkernel.Money;
@@ -25,10 +26,8 @@ public class BookKeeperTest{
     ProductType productType = ProductType.STANDARD;
     Money money  = new Money(1);
     TaxPolicy taxPolicy = mock(TaxPolicy.class);
-    RequestItem requestItem = new RequestItem(productData, 1, money);
     BookKeeper bookKeeper;
-    ClientData clientData =  new ClientData(new Id("1"), "client");
-    InvoiceRequest request = new InvoiceRequest(clientData);
+    InvoiceRequest request;
     Tax tax= new Tax(money, "tax");;
     Invoice invoice;
     List<InvoiceLine> invoiceLines;
@@ -36,10 +35,15 @@ public class BookKeeperTest{
 
     @Test
     public  void returnOnePositionForOneItemInInvoice(){
-
         bookKeeper = new BookKeeper(new InvoiceFactory());
         when(productData.getType()).thenReturn(productType);
-        request.add(requestItem);
+
+        InvoiceBuilderImpl invoiceBuilderImpl = new InvoiceBuilderImpl();
+        invoiceBuilderImpl.setItemsQuantity(1);
+        invoiceBuilderImpl.setProductData(productData);
+        invoiceBuilderImpl.setMoney(money);
+        request = invoiceBuilderImpl.build();
+
         when(taxPolicy.calculateTax(productType, money)).thenReturn(tax);
         invoice = bookKeeper.issuance( request,taxPolicy);
         invoiceLines = invoice.getItems();
@@ -54,8 +58,13 @@ public class BookKeeperTest{
 
         bookKeeper = new BookKeeper(new InvoiceFactory());
         when(productData.getType()).thenReturn(productType);
-        request.add(requestItem);
-        request.add(requestItem);
+
+        InvoiceBuilderImpl invoiceBuilderImpl = new InvoiceBuilderImpl();
+        invoiceBuilderImpl.setItemsQuantity(2);
+        invoiceBuilderImpl.setProductData(productData);
+        invoiceBuilderImpl.setMoney(money);
+        request = invoiceBuilderImpl.build();
+
         when(taxPolicy.calculateTax(productType, money)).thenReturn(tax);
         invoice = bookKeeper.issuance( request,taxPolicy);
         invoiceLines = invoice.getItems();
@@ -70,6 +79,13 @@ public class BookKeeperTest{
 
         bookKeeper = new BookKeeper(new InvoiceFactory());
         when(productData.getType()).thenReturn(productType);
+
+        InvoiceBuilderImpl invoiceBuilderImpl = new InvoiceBuilderImpl();
+        invoiceBuilderImpl.setItemsQuantity(0);
+        invoiceBuilderImpl.setProductData(productData);
+        invoiceBuilderImpl.setMoney(money);
+        request = invoiceBuilderImpl.build();
+
         when(taxPolicy.calculateTax(productType, money)).thenReturn(tax);
         invoice = bookKeeper.issuance( request,taxPolicy);
         invoiceLines = invoice.getItems();
@@ -83,9 +99,13 @@ public class BookKeeperTest{
 
         bookKeeper = new BookKeeper(new InvoiceFactory());
         when(productData.getType()).thenReturn(productType);
-        for(int i=0;i<10;i++) {
-            request.add(requestItem);
-        }
+
+        InvoiceBuilderImpl invoiceBuilderImpl = new InvoiceBuilderImpl();
+        invoiceBuilderImpl.setItemsQuantity(10);
+        invoiceBuilderImpl.setProductData(productData);
+        invoiceBuilderImpl.setMoney(money);
+        request = invoiceBuilderImpl.build();
+
         when(taxPolicy.calculateTax(productType, money)).thenReturn(tax);
         invoice = bookKeeper.issuance( request,taxPolicy);
         invoiceLines = invoice.getItems();
