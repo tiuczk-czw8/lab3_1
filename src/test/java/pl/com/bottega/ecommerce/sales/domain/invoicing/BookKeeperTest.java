@@ -52,12 +52,35 @@ public class BookKeeperTest {
     }
 
     @Test
+    public void stateTestReturnInvoiceWithNoEntries() {
+        Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
+        testIssuanceState(invoice, 0);
+    }
+
+    @Test
     public void stateTestReturnInvoiceWithOneEntry() {
         RequestItem requestItem = new RequestItem(productData, 1, money);
         invoiceRequest.add(requestItem);
 
         Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
         testIssuanceState(invoice, 1);
+    }
+
+    @Test
+    public void stateTestReturnInvoiceWith10Entries() {
+        RequestItem requestItem = new RequestItem(productData, 1, money);
+        for (int i = 0; i < 10; i++) {
+            invoiceRequest.add(requestItem);
+        }
+
+        Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
+        testIssuanceState(invoice, 10);
+    }
+
+    @Test
+    public void behaviourTestReturnInvoiceWithNoEnties() {
+        Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
+        testIssuanceBehaviour(invoice, 0);
     }
 
     @Test
@@ -68,6 +91,17 @@ public class BookKeeperTest {
 
         Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
         testIssuanceBehaviour(invoice, 2);
+    }
+
+    @Test
+    public void behaviourTestReturnInvoiceWith10Enties() {
+        RequestItem requestItem = new RequestItem(productData, 1, money);
+        for (int i = 0; i < 10; i++) {
+            invoiceRequest.add(requestItem);
+        }
+
+        Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
+        testIssuanceBehaviour(invoice, 10);
     }
 
     private void testIssuanceState(Invoice invoice, int numberOfItems) {
