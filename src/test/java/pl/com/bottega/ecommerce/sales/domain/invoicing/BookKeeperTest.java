@@ -91,4 +91,24 @@ public class BookKeeperTest {
         assertThat(elements, notNullValue());
         assertThat(elements.size(), is(0));
     }
+
+    @Test
+    public void shouldCalculateTaxFor1000ElementsInInvoice() {
+        when(productData.getType()).thenAnswer(invocationOnMock -> productType);
+        RequestItem requestItem = new RequestItem(productData, 1, money);
+        InvoiceRequest invoiceRequest = new InvoiceRequest(clientData);
+
+        for (int i = 0; i < 1000; i++) {
+            invoiceRequest.add(requestItem);
+        }
+        BookKeeper bookKeeper = new BookKeeper(new InvoiceFactory());
+        when(taxPolicy.calculateTax(productType, money)).thenAnswer(invocationOnMock -> tax);
+
+        Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
+        List<InvoiceLine> elements = invoice.getItems();
+
+        verify(taxPolicy, times(1000)).calculateTax(productType, money);
+        assertThat(elements, notNullValue());
+        assertThat(elements.size(), is(1000));
+    }
 }
