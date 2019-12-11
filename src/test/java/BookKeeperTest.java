@@ -54,6 +54,20 @@ public class BookKeeperTest {
     }
 
     @Test
+    public void shouldReturnInvoiceWithTwoEntryForTwoListElement() {
+        initData();
+        invoiceRequest.add(requestItem);
+        invoiceRequest.add(requestItem);
+
+        when(taxPolicy.calculateTax(productType, money)).thenAnswer(invocationOnMock -> tax);
+        Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
+        List<InvoiceLine> itemList = invoice.getItems();
+        assertThat(invoice, notNullValue());
+        assertThat(itemList, notNullValue());
+        assertThat(itemList.size(), is(2));
+    }
+
+    @Test
     public void shouldNotInvokeCalculateTaxForRequestWithNoElements() {
         initData();
 
