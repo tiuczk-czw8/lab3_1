@@ -14,8 +14,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import pl.com.bottega.ecommerce.canonicalmodel.publishedlanguage.ClientData;
-import pl.com.bottega.ecommerce.canonicalmodel.publishedlanguage.Id;
+import pl.com.bottega.ecommerce.sales.domain.invoicing.TestBuilders.InvoiceBuilderImpl;
 import pl.com.bottega.ecommerce.sales.domain.productscatalog.ProductData;
 import pl.com.bottega.ecommerce.sales.domain.productscatalog.ProductType;
 import pl.com.bottega.ecommerce.sharedkernel.Money;
@@ -29,7 +28,6 @@ public class BookKeeperTest {
     private Money money;
     private Money net;
     private Tax tax;
-    private ClientData clientData;
     private InvoiceRequest invoiceRequest;
 
     private void prepareMocks() {
@@ -46,21 +44,20 @@ public class BookKeeperTest {
         money = new Money(2.0f);
         net = new Money(1.0f);
         tax = new Tax(money, "tax");
-        clientData = new ClientData(new Id("1"), "name");
-        invoiceRequest = new InvoiceRequest(clientData);
         prepareMocks();
     }
 
     @Test
     public void stateTestReturnInvoiceWithNoEntries() {
+        invoiceRequest = buildInvoiceRequest(0);
+
         Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
         testIssuanceState(invoice, 0);
     }
 
     @Test
     public void stateTestReturnInvoiceWithOneEntry() {
-        RequestItem requestItem = new RequestItem(productData, 1, money);
-        invoiceRequest.add(requestItem);
+        invoiceRequest = buildInvoiceRequest(1);
 
         Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
         testIssuanceState(invoice, 1);
@@ -68,10 +65,7 @@ public class BookKeeperTest {
 
     @Test
     public void stateTestReturnInvoiceWith10Entries() {
-        RequestItem requestItem = new RequestItem(productData, 1, money);
-        for (int i = 0; i < 10; i++) {
-            invoiceRequest.add(requestItem);
-        }
+        invoiceRequest = buildInvoiceRequest(10);
 
         Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
         testIssuanceState(invoice, 10);
@@ -79,15 +73,15 @@ public class BookKeeperTest {
 
     @Test
     public void behaviourTestReturnInvoiceWithNoEnties() {
+        invoiceRequest = buildInvoiceRequest(0);
+
         Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
         testIssuanceBehaviour(invoice, 0);
     }
 
     @Test
     public void behaviourTestReturnInvoiceWithTwoEnties() {
-        RequestItem requestItem = new RequestItem(productData, 1, money);
-        invoiceRequest.add(requestItem);
-        invoiceRequest.add(requestItem);
+        invoiceRequest = buildInvoiceRequest(2);
 
         Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
         testIssuanceBehaviour(invoice, 2);
@@ -95,10 +89,7 @@ public class BookKeeperTest {
 
     @Test
     public void behaviourTestReturnInvoiceWith10Enties() {
-        RequestItem requestItem = new RequestItem(productData, 1, money);
-        for (int i = 0; i < 10; i++) {
-            invoiceRequest.add(requestItem);
-        }
+        invoiceRequest = buildInvoiceRequest(10);
 
         Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
         testIssuanceBehaviour(invoice, 10);
@@ -113,5 +104,13 @@ public class BookKeeperTest {
 
     private void testIssuanceBehaviour(Invoice invoice, int numberOfCalls) {
         verify(taxPolicy, times(numberOfCalls)).calculateTax(productType, money);
+    }
+
+    private InvoiceRequest buildInvoiceRequest(int itemsQuantity) {
+        InvoiceBuilderImpl invoiceBuilderImpl = new InvoiceBuilderImpl();
+        invoiceBuilderImpl.setItemsQuantity(itemsQuantity);
+        invoiceBuilderImpl.setProductData(productData);
+        invoiceBuilderImpl.setMoney(money);
+        return invoiceBuilderImpl.build();
     }
 }

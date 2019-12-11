@@ -1,14 +1,16 @@
 package pl.com.bottega.ecommerce.sales.domain.invoicing.TestBuilders;
 
-import pl.com.bottega.ecommerce.canonicalmodel.publishedlanguage.ClientData;
-import pl.com.bottega.ecommerce.canonicalmodel.publishedlanguage.Id;
 import pl.com.bottega.ecommerce.sales.domain.invoicing.InvoiceRequest;
+import pl.com.bottega.ecommerce.sales.domain.productscatalog.ProductData;
+import pl.com.bottega.ecommerce.sharedkernel.Money;
 
 public interface InvoiceBuilder {
 
-    void setId(Id id);
+    void setProductData(ProductData productData);
 
-    void setClientData(ClientData clientData);
+    void setMoney(Money money);
+
+    void setItemsQuantity(int quantity);
 
     InvoiceRequest build();
 }
