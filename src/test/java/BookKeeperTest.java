@@ -1,11 +1,11 @@
 import org.junit.Before;
 import org.junit.Test;
-import pl.com.bottega.ecommerce.canonicalmodel.publishedlanguage.ClientData;
-import pl.com.bottega.ecommerce.canonicalmodel.publishedlanguage.Id;
 import pl.com.bottega.ecommerce.sales.domain.invoicing.*;
 import pl.com.bottega.ecommerce.sales.domain.productscatalog.ProductData;
 import pl.com.bottega.ecommerce.sales.domain.productscatalog.ProductType;
 import pl.com.bottega.ecommerce.sharedkernel.Money;
+import testBuilders.InvoiceTestBuilder;
+import testBuilders.InvoiceTestBuilderImpl;
 
 import java.util.List;
 
@@ -19,32 +19,26 @@ public class BookKeeperTest {
     private ProductType productType = ProductType.STANDARD;
     private TaxPolicy taxPolicy;
     private Money money;
-    private RequestItem requestItem;
-    private ClientData clientData;
     private InvoiceRequest invoiceRequest;
     private BookKeeper bookKeeper;
     private Tax tax;
+    private InvoiceTestBuilder invoiceTestBuilder;
 
     @Before
     public void mockClass() {
         productData = mock(ProductData.class);
         taxPolicy = mock(TaxPolicy.class);
         when(productData.getType()).thenAnswer(invocationOnMock -> productType);
-    }
-
-    private void initData() {
+        invoiceTestBuilder = new InvoiceTestBuilderImpl();
         money = new Money(0.0);
-        requestItem = new RequestItem(productData, 0, money);
-        clientData = new ClientData(new Id("1"), "prod");
-        invoiceRequest = new InvoiceRequest(clientData);
         bookKeeper = new BookKeeper(new InvoiceFactory());
         tax = new Tax(money, "tax");
     }
 
+
     @Test
     public void shouldReturnInvoiceWithOneEntryForOneListElement() {
-        initData();
-        invoiceRequest.add(requestItem);
+        setInvoiceTestBuilder(1);
         when(taxPolicy.calculateTax(productType, money)).thenAnswer(invocationOnMock -> tax);
         Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
         List<InvoiceLine> itemList = invoice.getItems();
@@ -55,10 +49,7 @@ public class BookKeeperTest {
 
     @Test
     public void shouldReturnInvoiceWithTwoEntryForTwoListElement() {
-        initData();
-        invoiceRequest.add(requestItem);
-        invoiceRequest.add(requestItem);
-
+        setInvoiceTestBuilder(2);
         when(taxPolicy.calculateTax(productType, money)).thenAnswer(invocationOnMock -> tax);
         Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
         List<InvoiceLine> itemList = invoice.getItems();
@@ -69,8 +60,7 @@ public class BookKeeperTest {
 
     @Test
     public void shouldNotInvokeCalculateTaxForRequestWithNoElements() {
-        initData();
-
+        setInvoiceTestBuilder(0);
         when(taxPolicy.calculateTax(productType, money)).thenAnswer(invocationOnMock -> tax);
         Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
         List<InvoiceLine> items = invoice.getItems();
@@ -80,14 +70,18 @@ public class BookKeeperTest {
 
     @Test
     public void shouldInvokeCalculateTaxTwentyTimesForRequestWithTwentyElements() {
-        initData();
-        for (int i = 0; i < 20; i++) {
-            invoiceRequest.add(requestItem);
-        }
+        setInvoiceTestBuilder(20);
         when(taxPolicy.calculateTax(productType, money)).thenAnswer(invocationOnMock -> tax);
         Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
         List<InvoiceLine> items = invoice.getItems();
         assertThat(items.size(), is(20));
         verify(taxPolicy, times(20)).calculateTax(productType, money);                                              //should be list with 100 elements
+    }
+
+    private void setInvoiceTestBuilder(int nofItems) {
+        invoiceTestBuilder.setItemsQuantity(nofItems);
+        invoiceTestBuilder.setProductData(productData);
+        invoiceTestBuilder.setMoney(money);
+        invoiceRequest = invoiceTestBuilder.build();
     }
 }
