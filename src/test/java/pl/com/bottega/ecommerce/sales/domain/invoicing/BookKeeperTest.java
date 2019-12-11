@@ -4,6 +4,8 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
@@ -20,22 +22,33 @@ import pl.com.bottega.ecommerce.sharedkernel.Money;
 
 public class BookKeeperTest {
 
-    private ProductType productType = ProductType.STANDARD;
-    private ProductData productData = mock(ProductData.class);
-    private TaxPolicy taxPolicy = Mockito.mock(TaxPolicy.class);
-    private BookKeeper bookKeeper = new BookKeeper(new InvoiceFactory());
-    private Money money = new Money(2.0f);
-    private Money net = new Money(1.0f);
-    private Tax tax = new Tax(money, "tax");
-    private ClientData clientData = new ClientData(new Id("1"), "name");
-    private InvoiceRequest invoiceRequest = new InvoiceRequest(clientData);
+    private ProductType productType;
+    private ProductData productData;
+    private TaxPolicy taxPolicy;
+    private BookKeeper bookKeeper;
+    private Money money;
+    private Money net;
+    private Tax tax;
+    private ClientData clientData;
+    private InvoiceRequest invoiceRequest;
+
+    private void prepareMocks() {
+        productData = mock(ProductData.class);
+        taxPolicy = Mockito.mock(TaxPolicy.class);
+        when(productData.getType()).thenAnswer(invocationOnMock -> productType);
+        when(taxPolicy.calculateTax(productType, money)).thenAnswer(invocationOnMock -> tax);
+    }
 
     @Before
     public void setup() {
-        // when(this.productData.getType()).thenReturn(productType);
-        // when(taxPolicy.calculateTax(productType, net)).thenReturn(tax);
-        when(productData.getType()).thenAnswer(invocationOnMock -> productType);
-        when(taxPolicy.calculateTax(productType, money)).thenAnswer(invocationOnMock -> tax);
+        productType = ProductType.STANDARD;
+        bookKeeper = new BookKeeper(new InvoiceFactory());
+        money = new Money(2.0f);
+        net = new Money(1.0f);
+        tax = new Tax(money, "tax");
+        clientData = new ClientData(new Id("1"), "name");
+        invoiceRequest = new InvoiceRequest(clientData);
+        prepareMocks();
     }
 
     @Test
@@ -51,4 +64,14 @@ public class BookKeeperTest {
         assertThat(items.size(), is(1));
     }
 
+    @Test
+    public void behaviourTestReturnInvoiceWithTwoEnties() {
+        RequestItem requestItem = new RequestItem(productData, 1, money);
+        invoiceRequest.add(requestItem);
+        invoiceRequest.add(requestItem);
+
+        Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
+
+        verify(taxPolicy, times(2)).calculateTax(productType, money);
+    }
 }
