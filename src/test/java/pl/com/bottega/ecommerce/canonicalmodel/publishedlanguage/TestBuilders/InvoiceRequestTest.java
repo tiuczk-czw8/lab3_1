@@ -14,11 +14,5 @@ public interface InvoiceRequestTest {
 
     void setProductData(ProductData productData);
 
-    InvoiceRequest constructAndGetOneParameter();
-
-    InvoiceRequest constructAndGetTwoParameter();
-
-    InvoiceRequest constructAndGetZeroParameter();
-
-    InvoiceRequest constructAndGetOneHundredParameter();
+    InvoiceRequest constructAndGet();
 }

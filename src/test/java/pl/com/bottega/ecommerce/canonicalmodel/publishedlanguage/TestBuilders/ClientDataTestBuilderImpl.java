@@ -1,5 +1,4 @@
 package pl.com.bottega.ecommerce.canonicalmodel.publishedlanguage.TestBuilders;
-
 import pl.com.bottega.ecommerce.canonicalmodel.publishedlanguage.ClientData;
 import pl.com.bottega.ecommerce.canonicalmodel.publishedlanguage.Id;
 
