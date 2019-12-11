@@ -66,7 +66,8 @@ public class BookKeeperTest
         assertThat(items.size(), is(2));
     }
     @Test
-    public void NotInvokeCalculateTaxForRequestWithNoElements() {
+    public void NotInvokeCalculateTaxForRequestWithNoElements()
+    {
         when(productData.getType()).thenAnswer(invocationOnMock -> productType);
         Money money = new Money(0.0);
         ClientData clientData = new ClientData(new Id("1"), "pro");
@@ -81,5 +82,27 @@ public class BookKeeperTest
 
         verify(taxPolicy, times(0)).calculateTax(productType, money);
         assertThat(items.size(), is(0));
+    }
+    @Test
+    public void InvokeCalculateTaxThousandTimesForRequestWithThousandElements()
+    {
+        when(productData.getType()).thenAnswer(invocationOnMock -> productType);
+        Money money = new Money(0.0);
+        RequestItem requestItem = new RequestItem(productData, 0, money);
+        ClientData clientData = new ClientData(new Id("1"), "pro");
+        InvoiceRequest invoiceRequest = new InvoiceRequest(clientData);
+        for (int i = 0; i < 1000; i++) {
+            invoiceRequest.add(requestItem);
+        }
+        BookKeeper bookKeeper = new BookKeeper(new InvoiceFactory());
+        TaxPolicy taxPolicy = Mockito.mock(TaxPolicy.class);
+        Tax tax = new Tax(money, "taxation");
+        when(taxPolicy.calculateTax(productType, money)).thenAnswer(invocationOnMock -> tax);
+
+        Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
+        List<InvoiceLine> items = invoice.getItems();
+
+        verify(taxPolicy, times(1000)).calculateTax(productType, money);
+        assertThat(items.size(), is(1000));
     }
 }
