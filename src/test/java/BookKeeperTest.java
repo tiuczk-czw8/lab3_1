@@ -63,4 +63,17 @@ public class BookKeeperTest {
         assertThat(items.size(), is(0));
         verify(taxPolicy, never()).calculateTax(productType, money);
     }
+
+    @Test
+    public void shouldInvokeCalculateTaxTwentyTimesForRequestWithTwentyElements() {
+        initData();
+        for (int i = 0; i < 20; i++) {
+            invoiceRequest.add(requestItem);
+        }
+        when(taxPolicy.calculateTax(productType, money)).thenAnswer(invocationOnMock -> tax);
+        Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
+        List<InvoiceLine> items = invoice.getItems();
+        assertThat(items.size(), is(20));
+        verify(taxPolicy, times(20)).calculateTax(productType, money);                                              //should be list with 100 elements
+    }
 }
