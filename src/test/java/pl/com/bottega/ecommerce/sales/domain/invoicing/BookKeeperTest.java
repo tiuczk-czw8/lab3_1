@@ -12,8 +12,7 @@ import java.util.List;
 
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 public class BookKeeperTest {
 
@@ -51,5 +50,27 @@ public class BookKeeperTest {
         assertThat(invoice, notNullValue());
         assertThat(elements, notNullValue());
         assertThat(elements.size(), is(1));
+    }
+
+    @Test
+    public void claculateTaxForTwoElementsInInvoice() {
+        when(productData.getType()).thenAnswer(invocationOnMock -> productType);
+        RequestItem requestItem = new RequestItem(productData, 1, money);
+
+        InvoiceRequest invoiceRequest = new InvoiceRequest(clientData);
+        invoiceRequest.add(requestItem);
+        invoiceRequest.add(requestItem);
+
+        BookKeeper bookKeeper = new BookKeeper(new InvoiceFactory());
+        when(taxPolicy.calculateTax(productType, money)).thenAnswer(invocationOnMock -> tax);
+
+        Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
+        List<InvoiceLine> elements = invoice.getItems();
+
+        verify(taxPolicy, times(2)).calculateTax(productType, money);
+        assertThat(elements, notNullValue());
+        assertThat(elements.size(), is(2));
+
+
     }
 }
