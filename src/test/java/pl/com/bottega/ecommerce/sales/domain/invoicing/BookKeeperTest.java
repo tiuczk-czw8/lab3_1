@@ -18,14 +18,20 @@ public class BookKeeperTest {
     private ProductData productData = Mockito.mock(ProductData.class);
     private ProductType productType = ProductType.STANDARD;
 
+    private InvoiceRequest createInvoiceRequest(int quantity, Money money){
+        InvoiceTestBuilder invoiceTestBuilderImp = new InvoiceTestBuilder();
+        invoiceTestBuilderImp.setItemsQuantity(quantity);
+        invoiceTestBuilderImp.setProductData(productData);
+        invoiceTestBuilderImp.setMoney(money);
+        InvoiceRequest invoiceRequest = invoiceTestBuilderImp.build();
+        return invoiceRequest;
+    }
+
     @Test
     public void doesReturnInvoiceWithOneEntryForOneListElement() {
         when(productData.getType()).thenAnswer(invocationOnMock -> productType);
         Money money = new Money(0.0);
-        RequestItem requestItem = new RequestItem(productData, 0, money);
-        ClientData clientData = new ClientData(new Id("0"), "p");
-        InvoiceRequest invoiceRequest = new InvoiceRequest(clientData);
-        invoiceRequest.add(requestItem);
+        InvoiceRequest invoiceRequest = createInvoiceRequest(1, money);
         BookKeeper bookKeeper = new BookKeeper(new InvoiceFactory());
         TaxPolicy taxPolicy = Mockito.mock(TaxPolicy.class);
         Tax tax = new Tax(money, "taxValue");
@@ -41,11 +47,7 @@ public class BookKeeperTest {
     public void doesItInvokeCalculationTaxTwiceForRequestWithTwoElements() {
         when(productData.getType()).thenAnswer(invocationOnMock -> productType);
         Money money = new Money(0.0);
-        RequestItem requestItem = new RequestItem(productData, 0, money);
-        ClientData clientData = new ClientData(new Id("0"), "p");
-        InvoiceRequest invoiceRequest = new InvoiceRequest(clientData);
-        invoiceRequest.add(requestItem);
-        invoiceRequest.add(requestItem);
+        InvoiceRequest invoiceRequest = createInvoiceRequest(2, money);
         BookKeeper bookKeeper = new BookKeeper(new InvoiceFactory());
         TaxPolicy taxPolicy = Mockito.mock(TaxPolicy.class);
         Tax tax = new Tax(money, "taxValue");
@@ -60,8 +62,7 @@ public class BookKeeperTest {
     public void doesItNotInvokeCalculationTaxForRequestWithZeroElements() {
         when(productData.getType()).thenAnswer(invocationOnMock -> productType);
         Money money = new Money(0.0);
-        ClientData clientData = new ClientData(new Id("0"), "p");
-        InvoiceRequest invoiceRequest = new InvoiceRequest(clientData);
+        InvoiceRequest invoiceRequest = createInvoiceRequest(0, money);
         BookKeeper bookKeeper = new BookKeeper(new InvoiceFactory());
         TaxPolicy taxPolicy = Mockito.mock(TaxPolicy.class);
         Tax tax = new Tax(money, "taxValue");
@@ -76,12 +77,7 @@ public class BookKeeperTest {
     public void doesItInvokeCalculationTaxTwoHundredTimesForRequestWithTwoHundredElements() {
         when(productData.getType()).thenAnswer(invocationOnMock -> productType);
         Money money = new Money(0.0);
-        RequestItem requestItem = new RequestItem(productData, 0, money);
-        ClientData clientData = new ClientData(new Id("0"), "p");
-        InvoiceRequest invoiceRequest = new InvoiceRequest(clientData);
-        for (int i = 0; i < 200; i++){
-            invoiceRequest.add(requestItem);
-        }
+        InvoiceRequest invoiceRequest = createInvoiceRequest(200, money);
         BookKeeper bookKeeper = new BookKeeper(new InvoiceFactory());
         TaxPolicy taxPolicy = Mockito.mock(TaxPolicy.class);
         Tax tax = new Tax(money, "taxValue");
