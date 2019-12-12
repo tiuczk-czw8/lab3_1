@@ -48,6 +48,28 @@ public class BookKeeperTest {
         assertTrue((calculateTaxCount == 0));
     }
 
+    @Test
+    public void ThreeInvoicesTaxCalculateTax() {
+        InvoiceRequest invoiceRequest = new InvoiceRequest(clientData);
+        RequestItem requestItem = new RequestItem(productData, 1, new Money(1));
+        invoiceRequest.add(requestItem);
+        invoiceRequest.add(requestItem);
+        invoiceRequest.add(requestItem);
+        Invoice returnInvoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
+        assertTrue(calculateTaxCount == 3);
+    }
+
+    @Test
+    public void InvoiceThreePositions() {
+        InvoiceRequest invoiceRequest = new InvoiceRequest(clientData);
+        RequestItem requestItem = new RequestItem(productData, 1, new Money(1));
+        invoiceRequest.add(requestItem);
+        invoiceRequest.add(requestItem);
+        invoiceRequest.add(requestItem);
+        Invoice returnInvoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
+        assertTrue(returnInvoice.getItems().size() == 3);
+    }
+
     private TaxPolicy taxPolicy = new TaxPolicy() {
         @Override
         public Tax calculateTax(ProductType productType, Money net) {
