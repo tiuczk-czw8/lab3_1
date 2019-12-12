@@ -3,14 +3,13 @@ package pl.com.bottega.ecommerce.sales.domain.invoicing;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
-import pl.com.bottega.ecommerce.canonicalmodel.publishedlanguage.ClientData;
-import pl.com.bottega.ecommerce.canonicalmodel.publishedlanguage.Id;
+import pl.com.bottega.ecommerce.sales.domain.invoicing.TestBuilders.InvoiceTestBuilderImplementation;
 import pl.com.bottega.ecommerce.sales.domain.productscatalog.ProductData;
 import pl.com.bottega.ecommerce.sales.domain.productscatalog.ProductType;
 import pl.com.bottega.ecommerce.sharedkernel.Money;
 
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.*;
 
 public class BookKeeperTest {
@@ -20,6 +19,15 @@ public class BookKeeperTest {
     TaxPolicy taxPolicy;
     Money money;
     Tax tax;
+
+    private InvoiceRequest createInvoiceRequest(int quantity, Money money){
+        InvoiceTestBuilderImplementation invoiceTestBuilderImp = new InvoiceTestBuilderImplementation();
+        invoiceTestBuilderImp.setItemsQuantity(quantity);
+        invoiceTestBuilderImp.setProductData(productData);
+        invoiceTestBuilderImp.setMoney(money);
+        InvoiceRequest invoiceRequest = invoiceTestBuilderImp.build();
+        return invoiceRequest;
+    }
 
     @Before
     public void tearsUp() {
@@ -34,12 +42,7 @@ public class BookKeeperTest {
     public void forSignleElementShouldReturnInvoiceWithOneElement() {
         when(productData.getType()).thenReturn(productType);
 
-        Id id = new Id("42");
-        ClientData client = new ClientData(id, "product");
-        InvoiceRequest invoiceRequest = new InvoiceRequest(client);
-
-        RequestItem requestItem = new RequestItem(productData, 1, money);
-        invoiceRequest.add(requestItem);
+        InvoiceRequest invoiceRequest = createInvoiceRequest(1, money);
 
         BookKeeper bookKeeper = new BookKeeper(new InvoiceFactory());
 
@@ -54,33 +57,7 @@ public class BookKeeperTest {
     public void shouldReturnInvoiceWithZeroElement() {
         when(productData.getType()).thenReturn(productType);
 
-        Id id = new Id("42");
-        ClientData client = new ClientData(id, "product");
-        InvoiceRequest invoiceRequest = new InvoiceRequest(client);
-
-        RequestItem requestItem = new RequestItem(productData, 1, money);
-
-        BookKeeper bookKeeper = new BookKeeper(new InvoiceFactory());
-
-        when(taxPolicy.calculateTax(productType, money)).thenAnswer(invocationOnMock -> tax);
-
-        Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
-
-        assertThat(invoice.getItems().size(), is(20));
-    }
-
-    @Test
-    public void shouldReturnInvoiceWithMultipleElements() {
-        when(productData.getType()).thenReturn(productType);
-
-        Id id = new Id("42");
-        ClientData client = new ClientData(id, "product");
-        InvoiceRequest invoiceRequest = new InvoiceRequest(client);
-
-        RequestItem requestItem = new RequestItem(productData, 1, money);
-        for (int i = 0; i < 20; i++) {
-            invoiceRequest.add(requestItem);
-        }
+        InvoiceRequest invoiceRequest = createInvoiceRequest(0, money);
 
         BookKeeper bookKeeper = new BookKeeper(new InvoiceFactory());
 
@@ -92,16 +69,25 @@ public class BookKeeperTest {
     }
 
     @Test
+    public void shouldReturnInvoiceWithMultipleElements() {
+        when(productData.getType()).thenReturn(productType);
+
+        InvoiceRequest invoiceRequest = createInvoiceRequest(20, money);
+
+        BookKeeper bookKeeper = new BookKeeper(new InvoiceFactory());
+
+        when(taxPolicy.calculateTax(productType, money)).thenAnswer(invocationOnMock -> tax);
+
+        Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
+
+        assertThat(invoice.getItems().size(), is(20));
+    }
+
+    @Test
     public void shouldCallTaxMethodTwoTimes() {
         when(productData.getType()).thenReturn(productType);
 
-        Id id = new Id("42");
-        ClientData client = new ClientData(id, "product");
-        InvoiceRequest invoiceRequest = new InvoiceRequest(client);
-
-        RequestItem requestItem = new RequestItem(productData, 1, money);
-        invoiceRequest.add(requestItem);
-        invoiceRequest.add(requestItem);
+        InvoiceRequest invoiceRequest = createInvoiceRequest(2, money);
 
         BookKeeper bookKeeper = new BookKeeper(new InvoiceFactory());
 
@@ -116,11 +102,7 @@ public class BookKeeperTest {
     public void shouldCallTaxMethodZeroTimes() {
         when(productData.getType()).thenReturn(productType);
 
-        Id id = new Id("42");
-        ClientData client = new ClientData(id, "product");
-        InvoiceRequest invoiceRequest = new InvoiceRequest(client);
-
-        RequestItem requestItem = new RequestItem(productData, 1, money);
+        InvoiceRequest invoiceRequest = createInvoiceRequest(0, money);
 
         BookKeeper bookKeeper = new BookKeeper(new InvoiceFactory());
 
@@ -135,14 +117,7 @@ public class BookKeeperTest {
     public void shouldCallTaxMethodMultipleTimes() {
         when(productData.getType()).thenReturn(productType);
 
-        Id id = new Id("42");
-        ClientData client = new ClientData(id, "product");
-        InvoiceRequest invoiceRequest = new InvoiceRequest(client);
-
-        RequestItem requestItem = new RequestItem(productData, 1, money);
-        for (int i = 0; i < 20; i++) {
-            invoiceRequest.add(requestItem);
-        }
+        InvoiceRequest invoiceRequest = createInvoiceRequest(20, money);
 
         BookKeeper bookKeeper = new BookKeeper(new InvoiceFactory());
 
