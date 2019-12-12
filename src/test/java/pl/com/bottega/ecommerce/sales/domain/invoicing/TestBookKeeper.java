@@ -1,6 +1,8 @@
 package pl.com.bottega.ecommerce.sales.domain.invoicing;
 
 import java.util.List;
+
+import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.mockito.Mockito;
 import pl.com.bottega.ecommerce.canonicalmodel.publishedlanguage.ClientData;
@@ -50,7 +52,6 @@ public class TestBookKeeper {
 
         bookKeeper = new BookKeeper(new InvoiceFactory());
 
-
         when(taxPolicy.calculateTax(productType, money)).thenAnswer(invocationOnMock -> tax);
 
         Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
@@ -59,5 +60,24 @@ public class TestBookKeeper {
         verify(taxPolicy, times(0)).calculateTax(productType, money);           //should invoke calculateTax zero times
         assertThat(items.size(), is(0));
 
+    }
+
+    @Test
+    public  void shouldReturnPositionsForFifteenItemInInvoiceTaxCalculatedFifteenTimes(){
+
+        bookKeeper = new BookKeeper(new InvoiceFactory());
+        when(productData.getType()).thenReturn(productType);
+        for(int i=0;i<15;i++) {
+            invoiceRequest.add(requestItem);
+        }
+
+        when(taxPolicy.calculateTax(productType, money)).thenReturn(tax);
+
+        Invoice invoice = bookKeeper.issuance( invoiceRequest,taxPolicy);
+        List<InvoiceLine> invoiceLines = invoice.getItems();
+
+        verify(taxPolicy, times(15)).calculateTax(productType, money);
+        assertThat(invoiceLines, notNullValue());
+        assertThat(invoiceLines.size(), Matchers.equalTo(15));
     }
 }
