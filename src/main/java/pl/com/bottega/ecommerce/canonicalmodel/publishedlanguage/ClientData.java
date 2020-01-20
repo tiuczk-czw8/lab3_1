@@ -24,12 +24,14 @@ public class ClientData {
 	private String name;
 
 	private ClientData(){}
-	
+
+
 	public ClientData(Id id, String name) {
 		this.id = id;
 		this.name = name;
 	}
-	
+
+
 	public Id getAggregateId() {
 		return id;
 	}
