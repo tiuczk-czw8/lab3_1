@@ -9,13 +9,13 @@ import pl.com.bottega.ecommerce.canonicalmodel.publishedlanguage.ClientData;
 
 public class InvoiceRequest {
 	private ClientData client;	
-	private static List<RequestItem> items = new ArrayList<RequestItem>();
+	private List<RequestItem> items = new ArrayList<RequestItem>();
 	
 	public InvoiceRequest(ClientData client){
 		this.client = client;
 	}
 	
-	public static void add(RequestItem item){
+	public void add(RequestItem item){
 		items.add(item);
 	}
 	

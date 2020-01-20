@@ -1,18 +1,8 @@
 package pl.com.bottega.ecommerce.sales.domain.invoicing;
 
-import pl.com.bottega.ecommerce.sales.domain.productscatalog.ProductData;
+import pl.com.bottega.ecommerce.canonicalmodel.publishedlanguage.ClientData;
 
 public interface InvoiceTestBuilderImp {
-    ClientTestBuilder getClientTestBuilderImp();
-
-    InvoiceReqTestBuilder getInvoiceReqTestBuilderImp();
-
-    ReqItemTestBuilder getReqItemTestBuilderImp();
-
-    ProductData getProductData();
-
-    void setProductData(ProductData productData);
-
-    InvoiceRequest makeAndGet();
-
-}
+        void setClientData(ClientData clientData);
+        InvoiceRequest build();
+    }
